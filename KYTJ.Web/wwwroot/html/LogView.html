@@ -1,0 +1,54 @@
+﻿<template id="v-operation-log">
+    <el-col :span="24" class="paddinglr5px">
+        <div class="panel panel-default">
+            <!-- Default panel contents -->
+            <div class="panel-heading">操作日志</div>
+            <div class="panel-body">
+
+                <el-row :gutter="10">
+                    <el-col :span="8">
+                        <div>
+                            <template>
+                                <el-date-picker v-model="logDateRange"
+                                                type="daterange"
+                                                range-separator="至"
+                                                start-placeholder="开始日期"
+                                                end-placeholder="结束日期">
+                                </el-date-picker>
+                            </template>
+                        </div>
+                    </el-col>
+                    <el-col :span="4">
+                        <el-button v-on:click="onSearch" type="primary">搜索</el-button>
+                    </el-col>
+                    <el-col :span="12" class="text-right">
+
+                    </el-col>
+                </el-row>
+
+
+                <div style="margin-top:10px">
+                    <el-table v-bind:data="logList"
+                              v-loading="loading"
+                              style="width: 100%">
+                        <el-table-column prop="action"
+                                         label="操作记录" min-width="7">
+                        </el-table-column>
+                        <el-table-column prop="createdBy"
+                                         label="操作人" min-width="7">
+                        </el-table-column>
+                        <el-table-column prop="createdOn"
+                                         label="操作时间" min-width="7">
+                        </el-table-column>
+                    </el-table>
+                    <el-pagination background style="float:right;"
+                                   layout="total, prev, pager, next"
+                                   v-on:current-change="searchOperationLogList"
+                                   v-bind:total="total"
+                                   v-bind:current-page.sync="pageIndex">
+                    </el-pagination>
+                </div>
+            </div>
+        </div>
+    </el-col>
+</template>

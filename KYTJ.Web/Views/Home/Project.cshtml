@@ -1,0 +1,219 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_TableLayout.cshtml";
+}
+
+<div id="mainArea">
+    <el-col :span="24">
+        <div>
+            <el-row :gutter="10">
+                <el-col :span="24" class="text-right">
+                    <span style="float: right;">
+                        <el-button v-on:click="onAddProject" type="primary">添加</el-button>
+                    </span>
+                </el-col>
+            </el-row>
+
+        </div>
+        <div style="margin-top:10px">
+            <el-table v-bind:data="projectList"
+                      v-loading="loading"
+                      style="width: 100%">
+                <el-table-column prop="projectName"
+                                 label="项目名称" min-width="20%">
+                </el-table-column>
+                <el-table-column prop="projectDesc"
+                                 label="备注" min-width="25%">
+                </el-table-column>
+
+                <el-table-column prop="userName"
+                                 label="创建人" min-width="10%">
+                </el-table-column>
+
+                <el-table-column prop="createTime"
+                                 label="创建时间" min-width="15%">
+                </el-table-column>
+                <el-table-column prop="updateTime"
+                                 label="更新时间" min-width="15%">
+                </el-table-column>
+
+                <el-table-column label="操作" min-width="15%">
+                    <template slot-scope="scope">
+                        <el-link type="primary">画布</el-link>
+                        <el-link type="primary" v-on:click="onEditProject(scope.row)" >编辑</el-link>
+                        <el-link type="primary" v-on:click="showDeleteProjectDlg(scope.row.id)">删除</el-link>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-pagination background style="float:right;"
+                           layout="total, prev, pager, next"
+                           v-on:current-change="searchList"
+                           v-bind:total="total"
+                           v-bind:current-page.sync="pageIndex">
+            </el-pagination>
+        </div>
+    </el-col>
+
+    <el-dialog title="提示" :visible.sync="deleteProjectDlg" top="5vh" center>
+        <div class="del-dialog-cnt">删除不可恢复，是否确定删除？</div>
+        <span slot="footer" class="dialog-footer">
+            <el-button v-on:click="deleteProjectDlg=false">取 消</el-button>
+            <el-button type="primary" v-on:click="deleteProject">确 定</el-button>
+        </span>
+    </el-dialog>
+
+    <el-dialog title="操作" v-bind:visible.sync="projectDetailDlg" top="5vh">
+        <div style="min-height:250px;overflow-x:hidden;">
+            <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+                <el-form-item label="项目名称" prop="projectName">
+                    <el-input  v-model="ruleForm.projectName" ></el-input>
+                </el-form-item>
+                <el-form-item label="项目描述" prop="projectDesc">
+                    <el-input v-model="ruleForm.projectDesc"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" v-on:click="submitProjectForm('ruleForm')">提交</el-button>
+                    <el-button v-on:click="projectDetailDlg=false">取消</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+    </el-dialog>
+</div>
+
+<script>
+    var main = new Vue({
+        'el': '#mainArea',
+        data: function () {
+            return {
+                projectList: [],
+                total: 0,
+                pageIndex: 1,
+                loading: false,
+                deleteProjectDlg: false,
+                projectDetailDlg: false,
+                projectId: 0,
+                ruleForm: {
+                    projectName: "",
+                    projectDesc: ""
+                },
+                rules: {
+                    projectName: [{ required: true, message: '请输入项目名称', trigger: 'blur' }],
+                    projectDesc: [{ required: true, message: '请输入项目描述', trigger: 'blur' }]
+                }
+
+            };
+        },
+        methods: {
+            onSearch: function () {
+                this.pageIndex = 1;
+                this.searchList();
+            },
+            searchList: function () {
+                var param = {};
+                param.pageIndex = this.pageIndex;
+                param.pageSize = 10;
+                this.loading = true;
+                var that = this;
+                $.ajax({
+                    url: "/Home/SearchProjectList",
+                    type: "GET",
+                    data: param,
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data && data.success) {
+                            that.projectList = data.data;
+                            that.total = data.total;
+                        }
+                        else {
+                            console.log(data.msg);
+                        }
+                        that.loading = false;
+                    }
+                });
+            },
+            showDeleteProjectDlg: function (id) {
+                this.deleteProjectDlg = true;
+                this.projectId = id;
+            },
+            onEditProject: function (row) {
+                this.projectDetailDlg = true;
+                this.ruleForm.projectName = row.projectName;
+                this.ruleForm.projectDesc = row.projectDesc;
+                this.projectId = row.id;
+            },
+            onAddProject: function () {
+                this.projectDetailDlg = true;
+                this.ruleForm.projectName = "";
+                this.ruleForm.projectDesc = "";
+                this.projectId = 0;
+            },
+            deleteProject: function () {
+                var param = {};
+                param.id = this.projectId;
+                var that = this;
+                $.ajax({
+                    url: "/Home/DeleteProject",
+                    type: "Post",
+                    data: param,
+                    dataType: 'json',
+                    success: function (data) {
+                        that.deleteProjectDlg = false;
+                        if (data && data.success) {
+                            that.$message({
+                                type: "success",
+                                message: data.msg
+                            });
+                            that.onSearch();
+                        }
+                        else {
+                            that.$message({
+                                type: "error",
+                                message: data.msg
+                            });
+                            console.log(data.msg);
+                        }
+                    }
+                });
+            },
+            submitProjectForm(formName) {
+                var param = this.ruleForm;
+                param.id = this.projectId;
+                var that = this;
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        $.ajax({
+                            url: "/Home/MaintainProject",
+                            type: "Post",
+                            data: param,
+                            dataType: 'json',
+                            success: function (data) {
+                                that.projectDetailDlg = false;
+                                if (data && data.success) {
+                                    that.$message({
+                                        type: "success",
+                                        message: data.msg
+                                    });
+                                    that.onSearch();
+                                }
+                                else {
+                                    that.$message({
+                                        type: "error",
+                                        message: data.msg
+                                    });
+                                    console.log(data.msg);
+                                }
+                            }
+                        });
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            }
+        },
+        mounted: function () {
+            this.onSearch();
+        }
+    });
+
+</script>

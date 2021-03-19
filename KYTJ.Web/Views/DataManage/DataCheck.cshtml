@@ -1,0 +1,293 @@
+﻿@{
+    ViewBag.Title = "DataSetList";
+    Layout = "~/Views/Shared/_TableLayout.cshtml";
+}
+
+<div id="mainArea">
+    <el-col :span="24">
+        <el-row :gutter="10">
+            <el-col :span="6">
+                <el-select v-model="SelectForm.projectId" placeholder="请选项目" v-on:change="projectTrigger()">
+                    <el-option v-for="item in SelectForm.projectList"
+                               :key="item.id"
+                               :label="item.projectName"
+                               :value="item.id">
+                    </el-option>
+                </el-select>
+            </el-col>
+            <el-col :span="6">
+                <el-select v-model="SelectForm.dataSetId" placeholder="请选数据集" v-on:change="dataSetTrigger()">
+                    <el-option v-for="item in SelectForm.dataSetList"
+                               :key="item.dataSetId"
+                               :label="item.dataSetName"
+                               :value="item.dataSetId">
+                    </el-option>
+                </el-select>
+            </el-col>
+            <el-col :span="6">
+                <el-select v-model="SelectForm.resultDataId" placeholder="请选数据">
+                    <el-option v-for="item in SelectForm.resultDataList"
+                               :key="item.id"
+                               :label="item.name"
+                               :value="item.id">
+                    </el-option>
+                </el-select>
+            </el-col>
+            <el-col :span="6" class="text-right">
+                <el-button v-on:click="onSearch" type="primary">搜索</el-button>
+            </el-col>
+        </el-row>
+        <div>
+
+            <el-table v-bind:data="DataCheckList"
+                      v-loading="loading"
+                      style="width: 100%">
+                <el-table-column prop="name"
+                                 label="字段名" min-width="30%">
+                </el-table-column>
+
+
+                <el-table-column prop="rem"
+                                 label="重命名" min-width="30%" >
+                </el-table-column>
+
+                <el-table-column prop="nullPercent"
+                                 label="空值占比" min-width="15%">
+                </el-table-column>
+
+                <el-table-column
+                                 label="类型" min-width="15%" :formatter="isContinuousFormatter">
+                </el-table-column>
+
+                <el-table-column label="操作" min-width="10%">
+                    <template slot-scope="scope">
+                        <el-link type="primary" v-on:click="showMaintainDlg(scope.row)">编辑</el-link>
+                        <el-link type="primary" v-on:click="showDeleteDlg(scope.row.dataSetId)">填充</el-link>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-pagination background style="float:right;"
+                           layout="total, prev, pager, next"
+                           v-on:current-change="searchList"
+                           v-bind:total="total"
+                           v-bind:current-page.sync="pageIndex">
+            </el-pagination>
+        </div>
+    </el-col>
+
+    <el-dialog title="编辑" v-bind:visible.sync="maintainDlg" top="5vh">
+        <div style="min-height:250px;overflow-x:hidden;">
+            <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+                <el-form-item label="数据集名称" prop="dataSetName">
+                    <el-input v-model="ruleForm.dataSetName"></el-input>
+                </el-form-item>
+                <el-form-item label="项目名称" prop="projectId">
+                    <el-select v-model="ruleForm.projectId" placeholder="请选数据对应项目">
+                        <el-option v-for="item in projectList"
+                                   :key="item.id"
+                                   :label="item.projectName"
+                                   :value="item.id">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="数据集描述" prop="dataSetDesc">
+                    <el-input v-model="ruleForm.dataSetDesc"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" v-on:click="submitFormData('ruleForm')">提交</el-button>
+                    <el-button v-on:click="maintainDlg=false">取消</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+    </el-dialog>
+
+    <el-dialog title="提示" :visible.sync="deleteDlg" top="5vh" center>
+        <div class="del-dialog-cnt">删除不可恢复，是否确定删除？</div>
+        <span slot="footer" class="dialog-footer">
+            <el-button v-on:click="deleteProjectDlg=deleteDlg">取 消</el-button>
+            <el-button type="primary" v-on:click="deleteDataSet">确 定</el-button>
+        </span>
+    </el-dialog>
+</div>
+
+<script>
+    var main = new Vue({
+        'el': '#mainArea',
+        data: function () {
+            return {
+                DataCheckList: [],
+                total: 0,
+                pageIndex: 1,
+                loading: false,
+                dataSetName: "",
+                maintainDlg: false,
+                deleteDlg: false,
+                projectAndSub: [],
+                SelectForm: {
+                    projectId: 0,
+                    projectList: [],
+                    dataSetId: 0,
+                    dataSetList: [],
+                    resultDataId: 0,
+                    resultDataList:[]
+                },
+                ruleForm: {
+                    projectId: "",
+                    dataSetName:"",
+                    dataSetDesc:""
+                },
+                rules: {
+                    projectId: [{ required: true, message: '请选数据对应项目', trigger: 'blur' }],
+                    dataSetName: [{ required: true, message: '请输入数据集名称', trigger: 'blur' }]
+                },
+                projectList: []
+
+            };
+        },
+        methods: {
+            onSearch: function () {
+                this.pageIndex = 1;
+                this.searchList();
+            },
+            searchList: function () {
+                var param = {};
+                param.pageIndex = this.pageIndex;
+                param.pageSize = 10;
+                param.resultDataId = this.SelectForm.resultDataId;
+                this.loading = true;
+                var that = this;
+                $.ajax({
+                    url: "/DataManage/SearchRdColumnList",
+                    type: "GET",
+                    data: param,
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data && data.success) {
+                            that.DataCheckList = data.data;
+                            that.total = data.total;
+                        }
+                        else {
+                            console.log(data.msg);
+                        }
+                        that.loading = false;
+                    }
+                });
+            },
+            showDeleteDlg: function (id) {
+                this.deleteDlg = true;
+            },
+            showMaintainDlg: function (row) {
+                this.maintainDlg = true;
+                this.ruleForm.dataSetName = row.dataSetName;
+                this.ruleForm.dataSetDesc = row.dataSetDesc;
+                this.ruleForm.projectId = row.projectId;
+
+            },
+            submitFormData: function (formName) {
+                var param = this.ruleForm;
+                var that = this;
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        $.ajax({
+                            url: "/DataManage/SearchRdColumnList",
+                            type: "Post",
+                            data: param,
+                            dataType: 'json',
+                            success: function (data) {
+                                that.maintainDlg = false;
+                                that.searchList();
+                                if (data && data.success) {
+                                    that.$message({
+                                        type: "success",
+                                        message: data.msg
+                                    });
+                                }
+                                else {
+                                    that.$message({
+                                        type: "error",
+                                        message: data.msg
+                                    });
+                                    console.log(data.msg);
+                                }
+                            }
+                        });
+
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            deleteDataSet: function () {
+                var param = {};
+                var that = this;
+                $.ajax({
+                    url: "/DataSet/DeleteDataSet",
+                    type: "Post",
+                    data: param,
+                    dataType: 'json',
+                    success: function (data) {
+                        that.deleteDlg = false;
+                        if (data && data.success) {
+                            that.$message({
+                                type: "success",
+                                message: data.msg
+                            });
+                            that.onSearch();
+                        }
+                        else {
+                            that.$message({
+                                type: "error",
+                                message: data.msg
+                            });
+                            console.log(data.msg);
+                        }
+                    }
+                });
+            },
+            isContinuousFormatter(row, column) {
+                if (row.isContinuous) {
+                    return '连续';
+                } else {
+                    return '分类';
+                }
+            },
+            projectTrigger() {
+                this.SelectForm.dataSetList = [];
+                this.SelectForm.resultDataList = [];
+                for (var i = 0; i < this.projectAndSub.length; i++) {
+                    if (this.projectAndSub[i].id == this.SelectForm.projectId) {
+                        this.SelectForm.dataSetList = this.projectAndSub[i].dataSetList;
+                    }
+                }
+            },
+            dataSetTrigger() {
+                this.SelectForm.resultDataList = [];
+                for (var i = 0; i < this.SelectForm.dataSetList.length; i++) {
+                    if (this.SelectForm.dataSetList[i].dataSetId == this.SelectForm.dataSetId) {
+                        this.SelectForm.resultDataList = this.SelectForm.dataSetList[i].resultDataList;
+                    }
+                }
+            }
+        },
+        mounted: function () {
+            //初始化下拉框值
+            var that = this;
+            $.ajax({
+                url: "/DataManage/SearchProjectAndSub",
+                type: "GET",
+                dataType: 'json',
+                success: function (data) {
+                    if (data && data.success) {
+                        that.SelectForm.projectList = data.data;
+                        that.projectAndSub = data.data;
+                    }
+                    else {
+                        console.log(data.msg);
+                    }
+                }
+            });
+        }
+    });
+
+</script>
