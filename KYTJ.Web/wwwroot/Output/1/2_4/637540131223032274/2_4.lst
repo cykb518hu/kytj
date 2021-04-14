@@ -1,0 +1,7 @@
+
+	modified robust Brown-Forsythe Levene-type test based on the absolute
+	deviations from the median
+
+data:  x
+Test Statistic = NaN, p-value = NA
+

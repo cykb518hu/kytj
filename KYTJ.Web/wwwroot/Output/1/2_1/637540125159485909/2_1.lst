@@ -1,0 +1,42 @@
+
+	One Sample t-test
+
+data:  xv[, i]
+t = 6.0057, df = 16, p-value = 1.832e-05
+alternative hypothesis: true mean is not equal to 2
+95 percent confidence interval:
+  75877.88 158666.71
+sample estimates:
+mean of x 
+ 117272.3 
+
+
+	One Sample t-test
+
+data:  xv[, i]
+t = 6.0057, df = 16, p-value = 9.162e-06
+alternative hypothesis: true mean is greater than 2
+95 percent confidence interval:
+ 83181.23      Inf
+sample estimates:
+mean of x 
+ 117272.3 
+
+
+	One Sample t-test
+
+data:  xv[, i]
+t = 6.0057, df = 16, p-value = 1
+alternative hypothesis: true mean is less than 2
+95 percent confidence interval:
+     -Inf 151363.4
+sample estimates:
+mean of x 
+ 117272.3 
+
+      0%       5%      10%      15%      20%      25%      30%      35% 
+    35.0   6991.8  24643.0  35773.0  37657.2  42062.0  75471.6  85053.4 
+     40%      45%      50%      55%      60%      65%      70%      75% 
+ 87805.4  95692.6 115647.0 119933.4 134219.4 146877.0 158167.8 180243.0 
+     80%      85%      90%      95%     100% 
+191945.4 200871.0 209602.6 229675.6 281578.0 

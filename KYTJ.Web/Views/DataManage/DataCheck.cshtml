@@ -61,7 +61,7 @@
 
                 <el-table-column label="操作" min-width="10%">
                     <template slot-scope="scope">
-                        <el-link type="primary" v-on:click="showMaintainDlg(scope.row)">编辑</el-link>
+                        <el-link type="primary" v-on:click="showRemDlg(scope.row)">编辑</el-link>
                         <el-link type="primary" v-on:click="showDeleteDlg(scope.row.dataSetId)">填充</el-link>
                     </template>
                 </el-table-column>
@@ -75,27 +75,15 @@
         </div>
     </el-col>
 
-    <el-dialog title="编辑" v-bind:visible.sync="maintainDlg" top="5vh">
+    <el-dialog title="编辑" v-bind:visible.sync="editRemDlg" top="5vh">
         <div style="min-height:250px;overflow-x:hidden;">
             <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-                <el-form-item label="数据集名称" prop="dataSetName">
-                    <el-input v-model="ruleForm.dataSetName"></el-input>
-                </el-form-item>
-                <el-form-item label="项目名称" prop="projectId">
-                    <el-select v-model="ruleForm.projectId" placeholder="请选数据对应项目">
-                        <el-option v-for="item in projectList"
-                                   :key="item.id"
-                                   :label="item.projectName"
-                                   :value="item.id">
-                        </el-option>
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="数据集描述" prop="dataSetDesc">
-                    <el-input v-model="ruleForm.dataSetDesc"></el-input>
+                <el-form-item label="重命名" prop="rem">
+                    <el-input v-model="ruleForm.rem"></el-input>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" v-on:click="submitFormData('ruleForm')">提交</el-button>
-                    <el-button v-on:click="maintainDlg=false">取消</el-button>
+                    <el-button type="primary" v-on:click="submitRemFormData('ruleForm')">提交</el-button>
+                    <el-button v-on:click="editRemDlg=false">取消</el-button>
                 </el-form-item>
             </el-form>
         </div>
@@ -120,27 +108,24 @@
                 pageIndex: 1,
                 loading: false,
                 dataSetName: "",
-                maintainDlg: false,
+                editRemDlg: false,
                 deleteDlg: false,
                 projectAndSub: [],
                 SelectForm: {
-                    projectId: 0,
+                    projectId: "",
                     projectList: [],
-                    dataSetId: 0,
+                    dataSetId: "",
                     dataSetList: [],
-                    resultDataId: 0,
+                    resultDataId: "",
                     resultDataList:[]
                 },
                 ruleForm: {
-                    projectId: "",
-                    dataSetName:"",
-                    dataSetDesc:""
+                    rem: "",
+                    id: 0,
                 },
                 rules: {
-                    projectId: [{ required: true, message: '请选数据对应项目', trigger: 'blur' }],
-                    dataSetName: [{ required: true, message: '请输入数据集名称', trigger: 'blur' }]
-                },
-                projectList: []
+                    rem: [{ required: true, message: '请输入内容', trigger: 'blur' }],
+                }
 
             };
         },
@@ -176,11 +161,10 @@
             showDeleteDlg: function (id) {
                 this.deleteDlg = true;
             },
-            showMaintainDlg: function (row) {
-                this.maintainDlg = true;
-                this.ruleForm.dataSetName = row.dataSetName;
-                this.ruleForm.dataSetDesc = row.dataSetDesc;
-                this.ruleForm.projectId = row.projectId;
+            showRemDlg: function (row) {
+                this.editRemDlg = true;
+                this.ruleForm.rem = row.rem;
+                this.ruleForm.id = row.id;
 
             },
             submitFormData: function (formName) {
@@ -189,12 +173,12 @@
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
                         $.ajax({
-                            url: "/DataManage/SearchRdColumnList",
+                            url: "/DataManage/UpdateRdColumnName",
                             type: "Post",
                             data: param,
                             dataType: 'json',
                             success: function (data) {
-                                that.maintainDlg = false;
+                                that.editRemDlg = false;
                                 that.searchList();
                                 if (data && data.success) {
                                     that.$message({
@@ -254,7 +238,9 @@
             },
             projectTrigger() {
                 this.SelectForm.dataSetList = [];
+                this.SelectForm.dataSetId = "";
                 this.SelectForm.resultDataList = [];
+                this.SelectForm.resultDataId = "";
                 for (var i = 0; i < this.projectAndSub.length; i++) {
                     if (this.projectAndSub[i].id == this.SelectForm.projectId) {
                         this.SelectForm.dataSetList = this.projectAndSub[i].dataSetList;
@@ -263,6 +249,7 @@
             },
             dataSetTrigger() {
                 this.SelectForm.resultDataList = [];
+                this.SelectForm.resultDataId = "";
                 for (var i = 0; i < this.SelectForm.dataSetList.length; i++) {
                     if (this.SelectForm.dataSetList[i].dataSetId == this.SelectForm.dataSetId) {
                         this.SelectForm.resultDataList = this.SelectForm.dataSetList[i].resultDataList;
@@ -274,7 +261,7 @@
             //初始化下拉框值
             var that = this;
             $.ajax({
-                url: "/DataManage/SearchProjectAndSub",
+                url: "/Home/SearchProjectAndSub",
                 type: "GET",
                 dataType: 'json',
                 success: function (data) {

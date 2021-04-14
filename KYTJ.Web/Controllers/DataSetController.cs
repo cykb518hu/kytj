@@ -134,18 +134,33 @@ namespace KYTJ.Web.Controllers
             }
         }
 
-        public JsonResult Test()
+        public JsonResult GetDataSetAndSub(int projectId)
+        {
+            try
+            {
+                var data = _dataSetRepository.GetDataSetAndSub(projectId);
+                return Json(new { success=true, data = data});
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, msg = ex.ToString() });
+            }
+        }
+
+        public JsonResult Test(int projectId)
         {
             try
             {
                 var msg = "ss";
-                var result = true;
-                Int32 nullCount = 12;
-                int dataCount = 17;
-                var NullPercent = ((double)nullCount / dataCount).ToString("P");
-                //_dataSetRepository.AddRdDataColumns();
+                //var result = true;
+                //Int32 nullCount = 12;
+                //int dataCount = 17;
+                //var NullPercent = ((double)nullCount / dataCount).ToString("P");
+                ////_dataSetRepository.AddRdDataColumns();
+                ///
 
-                return Json(new { success = NullPercent, msg });
+                var data = _dataSetRepository.GetDataSetAndSub(projectId);
+                return Json(new { success = true, data, msg });
             }
             catch (Exception ex)
             {

@@ -24,6 +24,10 @@ namespace KYTJ.Data.Repository
         bool EditDataSet(DataSetModel data);
         public void AddRdDataColumns();
 
+        public List<DataSetModel> GetDataSetAndSub(int projectId);
+
+        DataSetModel GetDataSet(int dataSetId);
+
     }
 
     public class DataSetRepository : KytjDbContext, IDataSetRepository
@@ -126,7 +130,7 @@ namespace KYTJ.Data.Repository
             try
             {
                 //有问题，需要用DF_TableConfig 数据来删除，
-                var dbNameList = _dbKyStatic.Ado.SqlQuery<string>("select dbName from DF_TableConfig where DataSetId=" + dataSetId);
+                var dbNameList = _dbKyStatic.Ado.SqlQuery<string>("select TableName from RD_ResultData where DataSet_Id=" + dataSetId);
                 foreach (var dbName in dbNameList)
                 {
                     var dropTable = $"drop table dbo.[{dbName}]";
@@ -160,22 +164,40 @@ namespace KYTJ.Data.Repository
             }
             return result;
         }
-
-
-        public List<ResultData> GetRdDataColumns()
+        public List<DataSetModel> GetDataSetAndSub(int projectId)
         {
-            var list = _dbKyStatic.Queryable<ResultData>().Mapper(it => it.DataColumns, it => it.DataColumns.First().ResultDataId)
-                .Mapper((s, cache) =>
-                {
-                    foreach(var t in s.DataColumns)
-                    {
-                        t.GroupingTags = _dbKyStatic.Queryable<RdGroupingTag>().Where(o => o.DataColumnId == t.Id).ToList();
-                    }
-                }
-                )
-                .Where(x => x.Id == 1178).ToList();
-            return list;
+            var resultsTask = new List<DataSetModel>();
+            try
+            {
+                var query = _dbKyStatic.Queryable<DataSetModel>();
+                resultsTask = query.Where(x => x.ProjectId == projectId)
+                    .Mapper(it => it.ResultDataList, it => it.ResultDataList.First().DataSetId)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("查询GetDataSetAndSub失败：" + ex.ToString());
+            }
+            return resultsTask;
         }
+
+        public DataSetModel GetDataSet(int dataSetId)
+        {
+            var resultsTask = new DataSetModel();
+            try
+            {
+                var query = _dbKyStatic.Queryable<DataSetModel>();
+                resultsTask = query.Where(x => x.DataSetId == dataSetId)
+                    .ToList().FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("查询GetDataSet失败：" + ex.ToString());
+            }
+            return resultsTask;
+        }
+
+
 
         public void AddRdDataColumns()
         {

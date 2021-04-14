@@ -50,6 +50,8 @@ namespace KYTJ.Model
 
         public int DataCount { get; set; }
         public DateTime CreateDateTime { get; set; }
+
+        public DateTime UpdateDateTime { get; set; }
         public string WdName { get; set; }
         public string TableName { get; set; }
 

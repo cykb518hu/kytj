@@ -103,5 +103,21 @@ namespace KYTJ.Web.Controllers
             }
         }
 
+        public JsonResult SearchProjectAndSub()
+        {
+            try
+            {
+                var total = 0;
+
+                var userName = SSOUser.GetUser();// HttpContext.User.Identity.Name;
+                var data = _projectRepository.GetProjectAndSub(userName);
+                return Json(new { success = true, data, total });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, msg = ex.ToString() });
+            }
+        }
+
     }
 }

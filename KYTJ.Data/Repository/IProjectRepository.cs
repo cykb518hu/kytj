@@ -4,16 +4,20 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace KYTJ.Data.Repository
 {
     public interface IProjectRepository
     {
+        public List<ProjectModel> GetProjectAndSub(string userName);
         List<ProjectModel> Search(string userName, int pageIndex, int pageSize, ref int totalCount);
         bool DeleteProject(int id);
 
         bool AddProject(string projectName, string projectDesc, string userName);
         bool EditProject(int id, string projectName, string projectDesc);
+
+        ProjectModel GetProject(int projectId);
     }
     public class ProjectRepository: KytjDbContext,IProjectRepository
     {
@@ -86,6 +90,46 @@ namespace KYTJ.Data.Repository
                 _logger.LogError("新增项目失败：" + ex.ToString());
             }
             return result;
+        }
+
+        public List<ProjectModel> GetProjectAndSub(string userName)
+        {
+            var resultsTask = new List<ProjectModel>();
+            try
+            {
+                var query = _dbKyStatic.Queryable<ProjectModel>();
+                resultsTask = query.Where(x => x.UserName == userName && x.IsDeleted == 0)
+                    .Mapper(it => it.DataSetList, it => it.DataSetList.First().ProjectId)
+                .Mapper((s, cache) =>
+                {
+                    foreach (var t in s.DataSetList)
+                    {
+                        t.ResultDataList = _dbKyStatic.Queryable<ResultData>().Where(o => o.DataSetId == t.DataSetId).ToList();
+                    }
+                }
+                ).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("查询项目及其数据失败：" + ex.ToString());
+            }
+            return resultsTask;
+        }
+
+        public ProjectModel GetProject(int projectId)
+        {
+            var resultsTask = new ProjectModel();
+            try
+            {
+                var query = _dbKyStatic.Queryable<ProjectModel>();
+                resultsTask = query.Where(x => x.Id == projectId)
+                .ToList().FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("查询项目及其数据失败GetProject：" + ex.ToString());
+            }
+            return resultsTask;
         }
     }
 }

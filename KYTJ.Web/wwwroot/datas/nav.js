@@ -29,7 +29,7 @@ var navs = [{
         {
             "title": "操作日志",
             "icon": "fa-envelope-open-o",
-            "href": postPath + "/Log/Index?v=" + Math.random(),
+            "href": postPath + "/dist/index.html?v=" + Math.random(),
         }
     ]
 }

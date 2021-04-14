@@ -4,4 +4,14 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KYTJ.Data\KYTJ.Data.csproj" />
+    <ProjectReference Include="..\KYTJ.Model\KYTJ.Model.csproj" />
+    <ProjectReference Include="..\KYTJ.RMethod\KYTJ.RMethod.csproj" />
+  </ItemGroup>
+
 </Project>

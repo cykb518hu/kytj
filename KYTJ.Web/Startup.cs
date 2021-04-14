@@ -13,6 +13,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using KYTJ.Data.Repository;
 using Newtonsoft;
+using KYTJ.Infrastructure.Handler;
+using KYTJ.Business.Repository;
 
 namespace KYTJ.Web
 {
@@ -35,6 +37,8 @@ namespace KYTJ.Web
             services.AddScoped<ILogRepository, LogRepository>();
             services.AddScoped<IDataSetRepository, DataSetRepository>();
             services.AddScoped<IDataManageRepository, DataManageRepository>();
+            services.AddScoped<IDataFlowRepository, DataFlowRepository>();
+            services.AddScoped<ICacheHandler, LocalMemoryCache>();
             KytjDbContext.KyStaticManagement = Configuration.GetConnectionString("KyStaticManagement");
             KytjDbContext.MySqlConnection = Configuration.GetConnectionString("MysqlConnection");
             KytjDbContext.ResearchData = Configuration.GetConnectionString("ResearchData");
@@ -46,11 +50,19 @@ namespace KYTJ.Web
             });
             GlobalSetting.Logo = Configuration.GetValue<string>("GlobalSetting:Logo");
             GlobalSetting.SqlFilePath = Configuration.GetValue<string>("GlobalSetting:SqlFilePath");
+            GlobalSetting.RScriptRunnerPath = Configuration.GetValue<string>("GlobalSetting:RScriptRunnerPath");
+            GlobalSetting.RScriptAcount = Configuration.GetValue<string>("GlobalSetting:RScriptAcount");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseCors(options =>
+            {
+                options.AllowAnyHeader();
+                options.AllowAnyMethod();
+                options.AllowAnyOrigin();
+            });
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

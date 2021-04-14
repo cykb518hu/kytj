@@ -60,7 +60,7 @@ namespace KYTJ.Data.Handler
         {
             //创建行转列的表
             _logger.LogInformation("创建行转列的表");
-            CreateSchema(mapping.DataSetId, mapping.TableId, dataTable);
+            CreateSchema(mapping.DataSetId,  dataTable);
             //插入DF_Field表
             _logger.LogInformation("插入DF_Field表");
             InsertDF(mapping.DataSetId, mapping.TableId, dataTable);
@@ -75,7 +75,7 @@ namespace KYTJ.Data.Handler
             var dt = _dbResearch.Ado.GetDataTable($"select * from dbo.[{dataTable.TableName}]");
             GenerateColumnData(dt, mapping.ResultDataId);
         }
-        public void CreateSchema(int datasetId, int tableId, DataTable dataTable)
+        public void CreateSchema(int datasetId,  DataTable dataTable)
         {
 
             DataTable dt = dataTable.Clone();
@@ -358,7 +358,7 @@ namespace KYTJ.Data.Handler
                     foreach (var item in groDate)
                     {
                         if (item.Key == null) valCountDict.Add(nullKey, item.Count());
-                        else valCountDict.Add(item.Key.ToString(), item.Count());
+                        else valCountDict.Add(item.Key?.ToString("yyyy-MM-dd"), item.Count());
                     }
                     isNum = false;
                     break;

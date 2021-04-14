@@ -1,0 +1,281 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="C:\Users\huzhe\source\repos\KYTJ.V2\KYTJ.Web\wwwroot\lib\GooFlow\js\jquery-1.11.0.js"></script>
+    <link href="C:\Users\huzhe\source\repos\KYTJ.V2\KYTJ.Web\wwwroot\lib\GooFlow\css\GooFlow2.css" rel="stylesheet" />
+
+    <script src="C:\Users\huzhe\source\repos\KYTJ.V2\KYTJ.Web\wwwroot\lib\GooFlow\js\GooFunc.js"></script>
+    <script src="C:\Users\huzhe\source\repos\KYTJ.V2\KYTJ.Web\wwwroot\lib\GooFlow\js\GooFlow.js"></script>
+    <link href="C:\Users\huzhe\source\repos\KYTJ.V2\KYTJ.Web\wwwroot\lib\GooFlow\css\default.css" rel="stylesheet" />
+</head>
+<body>
+    <style>
+        .rightMenu {
+            list-style: none;
+            background: gainsboro;
+            border: solid 1px darkgrey;
+            margin: 0px;
+            padding: 5px;
+            position: absolute;
+            /*left: 0px;*/
+            top: 0px;
+            display: none;
+        }
+
+            .rightMenu li {
+                border-bottom: solid 1px darkgrey;
+            }
+
+                .rightMenu li:hover {
+                    opacity: 0.6;
+                    background-color: #c1dcfc;
+                }
+    </style>
+    <script type="text/javascript">
+
+        var jschars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+        function generateMixed(n) {
+            var res = "";
+            for (var i = 0; i < n; i++) {
+                var id = Math.ceil(Math.random() * 35);
+                res += jschars[id];
+            }
+            return res;
+        }
+        var property = {
+            //width: 1100,
+            height: 400,
+            toolBtns: ["source", "filter", "row", "field", "database", "simpli", "complex", "static"],
+            haveHead: true,
+            headBtns: ["save", "undo", "redo", "remove"],//如果haveHead=true，则定义HEAD区的按钮
+            haveTool: true,
+            haveGroup: false,
+            useOperStack: true
+        };
+        var remark = {
+            cursor: "选择指针",
+            direct: "节点连线",
+            filter: "过滤",
+            source: "数据源",
+            static: "统计分析",
+            "row": "行处理",
+            "field": "列处理",
+            database: "数据整合",
+            simpli: "样本管理",
+            //"join": "数据优化",
+            "complex": "视图预览",
+        };
+        var demo, jsondata;
+        var diseaseId = 111;//requestchild('diseaId');
+        var diseaseName = "achilles";// requestchild('diseaName');
+        var flowCacheKey = top.ssoUserId + '_' + diseaseId + '_' + 'flow';
+        $(document).ready(function () {
+            demo = $.createGooFlow($("#demo_flow"), property);
+            demo.setNodeRemarks(remark);
+            var dataLocal = JSON.parse(localStorage.getItem(flowCacheKey));
+            if (dataLocal != null) {
+                if (new Date().getTime() - dataLocal.time < 5 * 24 * 3600 * 1000) {
+                    demo.loadData(JSON.parse(dataLocal.data))
+                } else
+                    localStorage.removeItem(flowCacheKey);
+            }
+            //if (localStorage.getItem(flowJson) != null) {
+            //    demo.loadData(JSON.parse(localStorage.getItem("jsondata")));
+            //}
+            demo.onItemFocus = function (id, model) {
+                var obj;
+                $("#ele_model").val(model);
+                $("#ele_id").val(id);
+                if (model == "line") {
+                    obj = this.$lineData[id];
+                    $("#ele_type").val(obj.M);
+                    $("#ele_left").val("");
+                    $("#ele_top").val("");
+                    $("#ele_width").val("");
+                    $("#ele_height").val("");
+                    $("#ele_from").val(obj.from);
+                    $("#ele_to").val(obj.to);
+                } else if (model == "node") {
+                    obj = this.$nodeData[id];
+                    $("#ele_type").val(obj.type);
+                    $("#ele_left").val(obj.left);
+                    $("#ele_top").val(obj.top);
+                    $("#ele_width").val(obj.width);
+                    $("#ele_height").val(obj.height);
+                    $("#ele_from").val("");
+                    $("#ele_to").val("");
+                }
+                $("#ele_name").val(obj.name);
+                return true;
+            };
+            demo.onItemBlur = function (id, model) {
+                //document.getElementById("propertyForm").reset();
+                return true;
+            };
+            demo.onBtnSaveClick = function () {
+                localstorageSet(flowCacheKey, JSON.stringify(demo.exportData()));
+                //localStorage.removeItem('jsondata');
+                //localStorage.setItem('jsondata', JSON.stringify(demo.exportData()));
+                alert("保存成功!")
+            }
+            demo.onRemoveClick = function () {
+                localStorage.removeItem(flowCacheKey);
+                demo.clearData();
+                //localstorageSet(flowCacheKey, JSON.stringify(demo.exportData()));
+                //localStorage.removeItem('jsondata');
+                //localStorage.setItem('jsondata', JSON.stringify(demo.exportData()));
+                alert("删除成功!")
+            }
+            var ul = document.querySelectorAll(".rightMenu");
+            var titleText, url, width = "900px", height = "600px";
+            for (var i = 0; i < ul.length; i++) {
+                ul[i].onclick = function (e) {
+                    var t = e.target.id;
+                    switch (t) {
+                        case "static":
+                            titleText = "统计页";
+                            url = vPath + '/Home/Flow_Main?firstNode=' + demo.$firstNodeId + "&preNode=" + demo.$preNode;
+                            width = "900px"; height = "600px";
+                            break;
+                        case "dataset_li":
+                            titleText = "选择数据源";
+                            url = vPath + '/Home/SelDataset?datanode=' + demo.$focus + '&diseaseId=' + diseaseId + '&diseaseName=' + diseaseName;
+                            width = "600px"; height = "400px";
+                            break;
+                        case "rightview":
+                            titleText = "视图预览";
+                            url = vPath + '/Home/SideFrame?preNode=' + demo.$preNode;
+                            width = "1000px"; height = "600px";
+                            break
+                        case "filterdata":
+                            titleText = "过滤";
+                            url = vPath + '/Project/Filtering?firstNode=' + demo.$firstNodeId + '&curNode=' + demo.$focus + '&preNode=' + demo.$preNode;
+                            width = "900px"; height = "600px";
+                            break;
+                        case "fieldopt":
+                            titleText = "列处理";
+                            url = vPath + '/Project/FieldOpt?firstNode=' + demo.$firstNodeId + '&curNode=' + demo.$focus + '&preNode=' + demo.$preNode;
+                            width = "450px"; height = "200px";
+                            break;
+                        case "rowopt":
+                            titleText = "行处理";
+                            url = vPath + '/Project/RowOpt?firstNode=' + demo.$firstNodeId + '&curNode=' + demo.$focus + '&preNode=' + demo.$preNode;
+                            width = "300px"; height = "120px";
+                            break;
+
+                        case "dataappend":
+
+                            titleText = "追加";
+                            var lineValues = Object.values(demo.$lineData);
+                            if (!demo.$preNode || !demo.$preNode2) {
+                                layer.msg("请连接两个数据集进行数据整合！", { icon: 0 });
+                                return false;
+                            }
+                            var firstNode = getFirstNode(lineValues, demo.$preNode);
+                            var secNode = getFirstNode(lineValues, demo.$preNode2);
+
+                            url = vPath + '/Dataset/Append?curNode=' + demo.$focus + '&preNode=' + firstNode + '&pre2=' + secNode; //数据整合节点作为新的起点
+                            width = "800px"; height = "500px";
+                            break;
+                        case "datacombain":
+                            titleText = "合并";
+                            var lineValues = Object.values(demo.$lineData);
+                            if (!demo.$preNode || !demo.$preNode2) {
+                                layer.msg("请连接两个数据集进行数据整合！", { icon: 0 });
+                                return false;
+                            }
+                            var firstNode = getFirstNode(lineValues, demo.$preNode);
+                            var secNode = getFirstNode(lineValues, demo.$preNode2);
+                            url = vPath + '/Dataset/Combine?curNode=' + demo.$focus + '&preNode=' + firstNode + '&pre2=' + secNode;
+                            width = "800px"; height = "500px";
+                            break;
+
+                        case "datasimpli":
+                            titleText = "样本抽样";
+                            url = vPath + '/Simpli/Index?firstNode=' + demo.$firstNodeId + '&curNode=' + demo.$focus + '&preNode=' + demo.$preNode;
+                            width = "800px"; height = "500px";
+                            break;
+                        case "datagroup":
+                            titleText = "数据分组";
+                            url = vPath + '/Simpli/DataGroup?firstNode=' + demo.$firstNodeId + '&curNode=' + demo.$focus + '&preNode=' + demo.$preNode;
+                            width = "800px"; height = "500px";
+                            break;
+                        default:
+                            url = "";
+                            break;
+                    }
+                    if (url)
+                        top.layer.open({
+                            type: 2,
+                            loading: false,
+                            title: titleText,
+                            area: [width, height],
+                            fixed: false, //不固定
+                            maxmin: false,
+                            content: url
+                        });
+                    //if (t.innerText == '打开') {
+                    //    console.log("点了打开！");
+                    //}
+                }
+            }
+
+        });
+
+        document.onclick = function (e) {
+            var lis = document.querySelectorAll(".rightMenu");
+            for (var i = 0; i < lis.length; i++) {
+                lis[i].style.display = "none";
+            }
+            //if (e.target.id != 'nodeMenu') {
+            //    var node = document.querySelector('#nodeMenu');
+            //    node.style.display = "none";
+            //}
+        }
+        var out;
+        function Export() {
+            document.getElementById("result").value = JSON.stringify(demo.exportData());
+        }
+
+
+    </script>
+
+    <div id="demo_flow" style="float: left; margin: 5px 0px; width: 100%;"></div>
+    <ul id="nodeMenu" class="rightMenu" style="width:100px;">
+        <li id="dataset_li">数据源设置</li>
+    </ul>
+    <ul id="staticMenu" class="rightMenu" style="width:100px;">
+        <li id="static">数据统计</li>
+    </ul>
+    <ul id="filtermenu" class="rightMenu" style="width:100px;">
+        <li id="filterdata">过滤</li>
+    </ul>
+    <ul id="menuView" class="rightMenu" style="width:100px;">
+        <li id="rightview">查看视图</li>
+    </ul>
+    <ul id="menuField" class="rightMenu" style="width:100px;">
+        <li id="fieldopt">列处理操作</li>
+    </ul>
+    <ul id="menuRow" class="rightMenu" style="width:100px;">
+        <li id="rowopt">行处理操作</li>
+    </ul>
+
+    <ul id="menudata" class="rightMenu" style="width:100px;">
+        <li id="dataappend">追加</li>
+        <li id="datacombain">合并</li>
+    </ul>
+    <ul id="menusimpli" class="rightMenu" style="width:100px;">
+        <li id="datasimpli">样本抽样</li>
+        <li id="datagroup">数据分组</li>
+    </ul>
+    <ul id="menuTest" class="rightMenu" style="width:100px;">
+        <li>其他</li>
+        <li id="check">查看数据集</li>
+        <li id="sx1">属性</li>
+    </ul>
+
+
+</body>
+</html>

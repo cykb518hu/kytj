@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\KYTJ.Business\KYTJ.Business.csproj" />
     <ProjectReference Include="..\KYTJ.Data\KYTJ.Data.csproj" />
     <ProjectReference Include="..\KYTJ.Infrastructure\KYTJ.Infrastructure.csproj" />
     <ProjectReference Include="..\SSO.Client\SSO.Client.csproj" />
