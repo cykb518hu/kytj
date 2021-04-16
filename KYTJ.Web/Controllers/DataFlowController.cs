@@ -152,6 +152,19 @@ namespace KYTJ.Web.Controllers
                 return Json(new { success = false, msg = ex.ToString() });
             }
         }
+
+        public JsonResult GetDictionaryDTOs(string type)
+        {
+            try
+            {
+                var data = _dataManageRepository.GetDictionaryDTOs(type);
+                return Json(new { success = true, data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, msg = ex.ToString() });
+            }
+        }
         public JsonResult TestStr(StatisticsMethodVM parameters)
         {
             try

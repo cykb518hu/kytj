@@ -24,6 +24,8 @@ namespace KYTJ.Data.Repository
 
         DataTable GetOriginalTable(string tableName);
         List<StatisticsMethodModel> GetStatisticsMethod();
+
+        List<DictionaryDTO> GetDictionaryDTOs(string type);
     }
 
     public class DataManageRepository : KytjDbContext, IDataManageRepository
@@ -169,6 +171,22 @@ namespace KYTJ.Data.Repository
             catch (Exception ex)
             {
                 _logger.LogError("GetStatisticsMethod" + ex.ToString());
+            }
+            return result;
+        }
+
+        public List<DictionaryDTO> GetDictionaryDTOs(string type)
+        {
+            var result = new List<DictionaryDTO>();
+            try
+            {
+                 result = _dbKyStatic.Ado.SqlQuery<DictionaryDTO>(GetSqlText("DataFlow-GetDictionary.sql"), new List<SugarParameter>(){
+                   new SugarParameter("@type",type)
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("GetDictionaryDTOs失败：" + ex.ToString());
             }
             return result;
         }

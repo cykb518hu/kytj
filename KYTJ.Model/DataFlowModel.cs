@@ -92,4 +92,15 @@ namespace KYTJ.Model
         public string Name { get; set; }
     }
 
+
+    public class DictionaryDTO
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Code { get; set; }
+        public int LinkedId { get; set; }
+        public string LinkedName { get; set; }
+        public string LinkedCode { get; set; }
+    }
+
 }

@@ -44,6 +44,62 @@ namespace KYTJ.Model
         public long ColumnField { get; set; }
 
         public List<long> AndFields { get; set; }    //与变量
+
+        public List<long> RelativeFields { get; set; }   //应变量
+        public List<string> RelativeTypes { get; set; } //应变量的类型
+        public List<string> RelativeLinkFuncs { get; set; } //应变量类型的关联函数
+        public List<long> CurveFields { get; set; }  //曲线拟合自变量
+
+        public int SNField { get; set; }    //编号    
+
+        public int GeeField { get; set; }
+        public int flField { get; set; }  //分类变量
+        public string GeeType { get; set; }
+
+        public int ResultField { get; set; }    //结果变量
+        public int FCField { get; set; }    //分层变量
+
+        public int DataType_ClassMethod { get; set; }
+
+        public decimal FilterValue { get; set; }    //过滤值VIF
+        public int TimeField { get; set; }  //时间变量
+        public int BeginTimeField { get; set; } //或开始时间
+        public int TimePoints { get; set; }
+        public int LandmarkAnalysisTimeCuts { get; set; }
+
+        public string RepeatHandler { get; set; }   //重复事件处理方法
+        public int StrataField { get; set; }    //模型中的分层变量
+
+        public string AlternativeHypothesis { get; set; }   //备择假设
+
+        public int GroupingId { get; set; } //分组变量
+        public int LayeringId { get; set; } //分层变量
+
+        public int Grouping2Id { get; set; } //分层II变量
+
+
+        public int ExposedField { get; set; }    //暴露变量
+        public int FieldRelation { get; set; }    //变量相关类型
+
+        public int SNId { get; set; }//编号
+        public int Factor { get; set; } //因子
+        public int Scores { get; set; } //Scores
+        public int Rotation { get; set; }   //Rotation
+
+        public string[] LatentNames { get; set; }    //自变量对应的潜变量名
+
+        public int FieldType { get; set; }  //变量类型
+
+        public List<long> AdjustFields { get; set; }    //调整变量
+        public int IsSimulateP { get; set; }    //是否模拟P值
+
+        public bool HasSnp { get; set; }    //是否snp
+        public int FamilySnField { get; set; }  //家系编号
+
+        public int BeginTime { get; set; }
+        public int EndTime { get; set; }
+        public int SnField { get; set; }
+
     }
 
     #region 统计方法VM
