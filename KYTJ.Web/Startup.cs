@@ -30,15 +30,15 @@ namespace KYTJ.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
+            services.AddControllersWithViews().AddRazorRuntimeCompilation();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            services.AddScoped<IProjectRepository, ProjectRepository>();
-            services.AddScoped<ILogRepository, LogRepository>();
-            services.AddScoped<IDataSetRepository, DataSetRepository>();
-            services.AddScoped<IDataManageRepository, DataManageRepository>();
-            services.AddScoped<IDataFlowRepository, DataFlowRepository>();
-            services.AddScoped<ICacheHandler, LocalMemoryCache>();
+            services.AddTransient<IProjectRepository, ProjectRepository>();
+            services.AddTransient<ILogRepository, LogRepository>();
+            services.AddTransient<IDataSetRepository, DataSetRepository>();
+            services.AddTransient<IDataManageRepository, DataManageRepository>();
+            services.AddTransient<IDataFlowRepository, DataFlowRepository>();
+            services.AddTransient<ICacheHandler, LocalMemoryCache>();
             KytjDbContext.KyStaticManagement = Configuration.GetConnectionString("KyStaticManagement");
             KytjDbContext.MySqlConnection = Configuration.GetConnectionString("MysqlConnection");
             KytjDbContext.ResearchData = Configuration.GetConnectionString("ResearchData");
@@ -52,6 +52,7 @@ namespace KYTJ.Web
             GlobalSetting.SqlFilePath = Configuration.GetValue<string>("GlobalSetting:SqlFilePath");
             GlobalSetting.RScriptRunnerPath = Configuration.GetValue<string>("GlobalSetting:RScriptRunnerPath");
             GlobalSetting.RScriptAcount = Configuration.GetValue<string>("GlobalSetting:RScriptAcount");
+            GlobalSetting.Title = Configuration.GetValue<string>("GlobalSetting:Title");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

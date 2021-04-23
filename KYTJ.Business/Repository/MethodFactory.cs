@@ -8,7 +8,7 @@ using System.Text;
 
 namespace KYTJ.Business.Repository
 {
-    public class MethodFactory
+    public class CaculateMethodFactory
     {
         public static StatisticsMethod Build(DataFlowCacheModel vm, string code, string param)
         {

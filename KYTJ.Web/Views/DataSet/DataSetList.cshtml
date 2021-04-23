@@ -3,9 +3,11 @@
     Layout = "~/Views/Shared/_TableLayout.cshtml";
 }
 
-<div id="mainArea">
-    <el-col :span="24">
-        <div>
+<div id="mainArea" v-loading.fullscreen.lock="fullscreenLoading">
+
+    <div>
+
+        <el-row :gutter="10">
             <el-col :span="6">
                 <el-input v-model="dataSetName"
                           placeholder="数据集名称"></el-input>
@@ -13,13 +15,14 @@
             <el-col :span="4">
                 <el-button v-on:click="onSearch" type="primary">搜索</el-button>
             </el-col>
-            <el-col :span="14" class="text-right">
+            <el-col :span="14">
 
             </el-col>
-        </div>
+        </el-row>
+    </div>
         <div style="margin-top:10px">
             <el-table v-bind:data="DataSetList"
-                      v-loading="loading"
+                      stripe
                       style="width: 100%">
                 <el-table-column prop="dataSetName"
                                  label="数据集名称" min-width="30%">
@@ -52,20 +55,24 @@
                 </el-table-column>
             </el-table>
             <el-pagination background style="float:right;"
-                           layout="total, prev, pager, next"
+                           layout="total,sizes, prev, pager, next"
+                           :page-sizes="[10, 15, 20, 50]"
                            v-on:current-change="searchList"
+                           v-on:size-change="onSearch"
                            v-bind:total="total"
-                           v-bind:current-page.sync="pageIndex">
+                           v-bind:current-page.sync="pageIndex"
+                           v-bind:page-size.sync="pageSize">
             </el-pagination>
         </div>
-    </el-col>
 
-    <el-dialog title="编辑" v-bind:visible.sync="maintainDlg" top="5vh">
-        <div style="min-height:250px;overflow-x:hidden;">
+
+    <el-dialog title="编辑" v-bind:visible.sync="maintainDlg" top="5vh"  width="40%"  :close-on-click-modal="false">
+        <div style="min-height:250px;padding-right:50px">
             <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
                 <el-form-item label="数据集名称" prop="dataSetName">
                     <el-input v-model="ruleForm.dataSetName"></el-input>
                 </el-form-item>
+                <br />
                 <el-form-item label="项目名称" prop="projectId">
                     <el-select v-model="ruleForm.projectId" placeholder="请选数据对应项目">
                         <el-option v-for="item in projectList"
@@ -75,6 +82,7 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
+                <br />
                 <el-form-item label="数据集描述" prop="dataSetDesc">
                     <el-input v-model="ruleForm.dataSetDesc"></el-input>
                 </el-form-item>
@@ -86,10 +94,10 @@
         </div>
     </el-dialog>
 
-    <el-dialog title="提示" :visible.sync="deleteDlg" top="5vh" center>
-        <div class="del-dialog-cnt">删除不可恢复，是否确定删除？</div>
+    <el-dialog title="提示" :visible.sync="deleteDlg" top="5vh" center width="30%"  :close-on-click-modal="false">
+        <div class="del-dialog-cnt">确定要删除吗？</div>
         <span slot="footer" class="dialog-footer">
-            <el-button v-on:click="deleteProjectDlg=deleteDlg">取 消</el-button>
+            <el-button v-on:click="deleteDlg=false">取 消</el-button>
             <el-button type="primary" v-on:click="deleteDataSet">确 定</el-button>
         </span>
     </el-dialog>
@@ -103,7 +111,8 @@
                 DataSetList: [],
                 total: 0,
                 pageIndex: 1,
-                loading: false,
+                pageSize:10,
+                fullscreenLoading: false,
                 dataSetName: "",
                 maintainDlg: false,
                 deleteDlg: false,
@@ -129,9 +138,9 @@
             searchList: function () {
                 var param = {};
                 param.pageIndex = this.pageIndex;
-                param.pageSize = 10;
+                param.pageSize = this.pageSize;
                 param.dataSetName = this.dataSetName;
-                this.loading = true;
+                this.fullscreenLoading = true;
                 var that = this;
                 $.ajax({
                     url: "/DataSet/SearchDataSetList",
@@ -146,7 +155,7 @@
                         else {
                             console.log(data.msg);
                         }
-                        that.loading = false;
+                        that.fullscreenLoading = false;
                     }
                 });
             },
@@ -254,7 +263,7 @@
             //初始化下拉框值
             var that = this;
             $.ajax({
-                url: "/Home/SearchProjectList",
+                url: "/Project/Search",
                 type: "GET",
                 dataType: 'json',
                 success: function (data) {

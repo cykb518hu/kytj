@@ -1,4 +1,5 @@
-﻿using KYTJ.Data.Repository;
+﻿using KYTJ.Data.Handler;
+using KYTJ.Data.Repository;
 using KYTJ.Infrastructure.Handler;
 using KYTJ.Infrastructure.Model;
 using KYTJ.Model;
@@ -18,12 +19,15 @@ namespace KYTJ.Business.Repository
     public interface IDataFlowRepository
     {
         void SetDataFlowCache(int resultDataId, string node);
-        DataFlowCacheModel GetDataFlowCache(string node, string prevNode, bool removeDt = true);
+        DataFlowCacheModel GetDataFlowCache(string node, string prevNode = "");
 
-        public List<DFDataColumn> GetFilterCols(string node, string filterType, int filterPercent);
+        List<DFDataColumn> GetDataFilterColumns(string node, string filterType, int filterPercent);
 
-        bool RemoveFilterCols(string node, List<int> ids);
+        bool DeleteDataFilterColumns(string node, List<int> ids);
         StatisticsMethodResult Calculate(StatisticsMethodVM parameters);
+        int DataRowFilterByColumns(string node, List<DataRowFilter> filterColumns);
+        bool DataSampleExtractSimple(string node, DataSampleModel simObj);
+        bool DataCombineAppend(string node, List<string> prevNodeIds, string fieldSource);
     }
 
     public class DataFlowRepository: IDataFlowRepository
@@ -35,8 +39,9 @@ namespace KYTJ.Business.Repository
         private readonly ICacheHandler _cacheHandler;
         private readonly IHostingEnvironment _env;
         private readonly ILogger<StatisticsMethod> _staticlogger;
+        private readonly ILogger<LegacyCodeHandler> _extractEngineDataHandlerlogger;
 
-        public DataFlowRepository(IDataManageRepository dataManageRepository, IDataSetRepository dataSetRepository, IProjectRepository projectRepository,ILogger<DataFlowRepository> logger, ICacheHandler cacheHandler, IHostingEnvironment env, ILogger<StatisticsMethod> staticlogger)
+        public DataFlowRepository(IDataManageRepository dataManageRepository, IDataSetRepository dataSetRepository, IProjectRepository projectRepository,ILogger<DataFlowRepository> logger, ICacheHandler cacheHandler, IHostingEnvironment env, ILogger<StatisticsMethod> staticlogger, ILogger<LegacyCodeHandler> extractEngineDataHandlerlogger)
         {
             _dataManageRepository = dataManageRepository;
             _dataSetRepository = dataSetRepository;
@@ -45,9 +50,10 @@ namespace KYTJ.Business.Repository
             _cacheHandler = cacheHandler;
             _env = env;
             _staticlogger = staticlogger;
+            _extractEngineDataHandlerlogger = extractEngineDataHandlerlogger;
         }
 
-        public DataFlowCacheModel GetDataFlowCache(string node, string prevNode, bool removeDt = true)
+        public DataFlowCacheModel GetDataFlowCache(string node, string prevNode="")
         {
             var data = _cacheHandler.Get<DataFlowCacheModel>(node);
             if (data == null && !string.IsNullOrEmpty(prevNode))
@@ -55,19 +61,14 @@ namespace KYTJ.Business.Repository
                 data = _cacheHandler.Get<DataFlowCacheModel>(prevNode);
                 SetDataFlowCache(data, node);
             }
-            if (data != null && removeDt)
-            {
-                var result = new DataFlowCacheModel();
-                result.DataColumns = data.DataColumns;
-                result.DataCount = data.DataCount;
-                result.DataSetInfo = data.DataSetInfo;
-                result.Id = data.Id;
-                result.Name = data.Name;
-                result.ProjectInfo = data.ProjectInfo;
-                result.TableName = data.TableName;
-                result.WdName = data.WdName;
-                return result;
-            }
+            //result.DataColumns = data.DataColumns;
+            //result.DataCount = data.DataCount;
+            //result.DataSetInfo = data.DataSetInfo;
+            //result.Id = data.Id;
+            //result.Name = data.Name;
+            //result.ProjectInfo = data.ProjectInfo;
+            //result.TableName = data.TableName;
+            //result.WdName = data.WdName;
             return data;
         }
         public void SetDataFlowCache(int resultDataId,string node)
@@ -88,7 +89,7 @@ namespace KYTJ.Business.Repository
             {
                 var dataSetId = 0;
                 var projectId = 0;
-                var rd = _dataManageRepository.GetRdDataAndSub(resultDataId);
+                var rd = _dataManageRepository.GetRdAndSub(resultDataId);
 
                 if (rd.Any())
                 {
@@ -127,20 +128,20 @@ namespace KYTJ.Business.Repository
 
                     });
 
-                    var dataSet = _dataSetRepository.GetDataSet(dataSetId);
+                    var dataSet = _dataSetRepository.GetDataSetById(dataSetId);
                     projectId = dataSet.ProjectId;
                     data.DataSetInfo = new DFDataSet
                     {
                         Id = dataSet.DataSetId,
                         Name = dataSet.DataSetName
                     };
-                    var project = _projectRepository.GetProject(projectId);
+                    var project = _projectRepository.GetProjectById(projectId);
                     data.ProjectInfo = new DFProject
                     {
                         Id = project.Id,
                         Name = project.ProjectName
                     };
-                    data.DataTable = _dataManageRepository.GetOriginalTable(data.TableName);
+                    data.DataTable = _dataManageRepository.GetOriginalDataFromMySql(data.TableName);
                 }
             }
             catch(Exception ex)
@@ -150,20 +151,21 @@ namespace KYTJ.Business.Repository
             return data;
         }
 
-        public List<DFDataColumn> GetFilterCols(string node,string filterType,int filterPercent)
+        public List<DFDataColumn> GetDataFilterColumns(string node,string filterType,int filterPercent)
         {
             var cols = new List<DFDataColumn>();
             try
             {
-                var cacheData = GetDataFlowCache(node, "", false);
+                var cacheData = GetDataFlowCache(node);
                 var count = cacheData.DataCount;
                 var dt = cacheData.DataTable;
+                var handler = new LegacyCodeHandler(_extractEngineDataHandlerlogger);
                 switch (filterType)
                 {
                     case "unique":
                         foreach (System.Data.DataColumn item in dt.Columns)
                         {
-                            bool s = ConvertTypeToSqlDbType(item.DataType, count, dt, item.ColumnName, filterPercent);
+                            bool s = handler.ConvertTypeToSqlDbType(item.DataType, count, dt, item.ColumnName, filterPercent);
                             if (s)
                                 cols.Add(cacheData.DataColumns.FirstOrDefault(x => x.Name == item.ColumnName));
                         }
@@ -201,60 +203,12 @@ namespace KYTJ.Business.Repository
             return cols;
         }
 
-        private bool ConvertTypeToSqlDbType(Type type, int count, DataTable dt, string columnName, int value)
-        {
-            bool columnExist = false;
-            int dCo = 0;
-            switch (type.Name)
-            {
-                case "String":
-                    List<string> list = (from d in dt.AsEnumerable() select d.Field<string>($"{columnName}")).ToList();
-                    dCo = list.GroupBy(c => c).Count();
-                    columnExist = (float)dCo / count >= (float)value / 100;
-                    break;
-                case "Int32":
-                    List<int?> listIn = (from d in dt.AsEnumerable() select d.Field<int?>($"{columnName}")).ToList();
-                    dCo = listIn.GroupBy(c => c).Count();
-                    columnExist = (float)dCo / count >= (float)value / 100;
-                    break;
-                case "Int16":
-                    List<Int16?> listSm = (from d in dt.AsEnumerable() select d.Field<Int16?>($"{columnName}")).ToList();
-                    dCo = listSm.GroupBy(c => c).Count();
-                    columnExist = (float)dCo / count >= (float)value / 100;
-                    break;
-                case "Int64":
-                    List<Int64?> listBig = (from d in dt.AsEnumerable() select d.Field<Int64?>($"{columnName}")).ToList();
-                    dCo = listBig.GroupBy(c => c).Count();
-                    columnExist = (float)dCo / count >= (float)value / 100;
-                    break;
-                case "DateTime":
-                    List<DateTime?> listdt = (from d in dt.AsEnumerable() select d.Field<DateTime?>($"{columnName}")).ToList();
-                    dCo = listdt.GroupBy(c => c).Count();
-                    columnExist = (float)dCo / count >= (float)value / 100;
-
-                    break;
-                case "Decimal":
-                    List<decimal?> listde = (from d in dt.AsEnumerable() select d.Field<decimal?>($"{columnName}")).ToList();
-                    dCo = listde.GroupBy(c => c).Count();
-                    columnExist = (float)dCo / count >= (float)value / 100;
-                    break;
-                case "Double":
-                    List<double?> listflo = (from d in dt.AsEnumerable() select d.Field<double?>($"{columnName}")).ToList();
-                    dCo = listflo.GroupBy(c => c).Count();
-                    columnExist = (float)dCo / count >= (float)value / 100;
-                    break;
-                default:
-                    break;
-            }
-            return columnExist;
-        }
-
-        public bool RemoveFilterCols(string node, List<int> ids)
+        public bool DeleteDataFilterColumns(string node, List<int> ids)
         {
             var result = true;
             try
             {
-                var cacheData = GetDataFlowCache(node, "", false);
+                var cacheData = GetDataFlowCache(node);
 
                 foreach (var id in ids)
                 {
@@ -295,9 +249,9 @@ namespace KYTJ.Business.Repository
                 {
                     item.CopyTo(Path.Combine(target, item.Name), true);
                 }
-                var cache = GetDataFlowCache(parameters.Node, "", false);
+                var cache = GetDataFlowCache(parameters.Node);
                 _logger.LogInformation($"计算参数,node:{parameters.Node},projectId:{cache.ProjectInfo.Id},dataSetId:{cache.DataSetInfo.Id},dataResultId:{cache.Id}");
-                var rMethod = MethodFactory.Build(cache, parameters.MethodCode, JsonConvert.SerializeObject(parameters));
+                var rMethod = CaculateMethodFactory.Build(cache, parameters.MethodCode, JsonConvert.SerializeObject(parameters));
                 rMethod.RScriptWorkingDirectory = target;
                 rMethod.RScriptFileName = Path.GetFileName(parameters.MethodPath);
                 rMethod.StaticLogger = _staticlogger;
@@ -323,7 +277,7 @@ namespace KYTJ.Business.Repository
                         }
                         if (System.IO.Directory.Exists(target))
                         {
-                            res.OutputHTML = ResultGenerated(target);
+                            res.OutputHTML = CalculateResult(target);
                             if (!string.IsNullOrEmpty(res.OutputHTML))
                             {
                                 var fileList = System.IO.Directory.EnumerateFiles(target).OrderBy(f => Path.GetExtension(f));
@@ -370,7 +324,7 @@ namespace KYTJ.Business.Repository
             return res;
         }
 
-        private  string ResultGenerated(string outPath)
+        private string CalculateResult(string outPath)
         {
             var fileList = System.IO.Directory.EnumerateFiles(outPath).OrderBy(f => Path.GetExtension(f));
             if (fileList != null)
@@ -394,6 +348,208 @@ namespace KYTJ.Business.Repository
             }
             return string.Empty;
         }
+
+
+        public int DataRowFilterByColumns(string node, List<DataRowFilter> filterColumns)
+        {
+            var result = 0;
+            try
+            {
+                var cacheData = GetDataFlowCache(node);
+                StringBuilder filter = new StringBuilder();
+                foreach(var r in filterColumns)
+                {
+                    if(r.Operation.Equals("like"))
+                    {
+                        filter.Append($"{r.Column} {r.Operation} '%{r.Value}%' and ");
+                    }
+                    else if(r.Operation.Equals("nl"))
+                    {
+                        filter.Append($"{r.Column} not like '%{r.Value}%' and ");
+                    }
+                    else
+                    {
+                        filter.Append($"{r.Column} {r.Operation} '{r.Value}' and ");
+                    }
+                    
+                }
+                filter.Append(" 1=1");
+
+                var filterRows = cacheData.DataTable.Select(filter.ToString());
+                if (filterRows.Length > 0)
+                {
+                    result = filterRows.Length;
+                    cacheData.DataTable = filterRows.CopyToDataTable();
+                    cacheData.DataCount = filterRows.Length;
+                    var handler = new LegacyCodeHandler(_extractEngineDataHandlerlogger);
+                    cacheData.DataColumns = handler.GenerateColumnDataForCache(cacheData.DataTable,cacheData.DataColumns);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("DataRowFilterByColumns失败：" + ex.ToString());
+            }
+            return result;
+
+        }
+
+        public bool DataSampleExtractSimple(string node, DataSampleModel simObj)
+        {
+            var result = true;
+            try
+            {
+                var cacheData = GetDataFlowCache(node);
+                DataTable dtRel = new DataTable();
+                var dt = cacheData.DataTable;
+                int dataCount = dt.Rows.Count;
+                switch (simObj.Method)
+                {
+                    case "extract":
+
+                        for (int i = 1; i <= dt.Rows.Count; i++)
+                        {
+                            if (i % simObj.SimVal == 1)
+                                dtRel.ImportRow(dt.Rows[i]);
+                        }
+                        break;
+                    case "pecent":
+                        bool valBoo = System.Text.RegularExpressions.Regex.IsMatch(simObj.SimVal.ToString(), @"^[1-9]\d*$");
+                        if (!valBoo)
+                            simObj.SimVal = simObj.SimVal * 100;
+                        if (simObj.SimMax > 0)
+                        {
+                            double dc = 0;
+                            if (valBoo)
+                                dc = dataCount * ((double)(simObj.SimVal) / 100);
+                            else
+                                dc = dataCount * ((double)(simObj.SimVal));
+                            if (simObj.SimMax > dc)
+                                dtRel = dt.AsEnumerable().Take(simObj.SimMax).CopyToDataTable();
+                            else
+                            {
+                                dtRel = dt.AsEnumerable().Take(Convert.ToInt32(Math.Round(simObj.SimMax / (double)(simObj.SimVal / 100), 0))).CopyToDataTable();
+                                dtRel = dtRel.AsEnumerable().Take(Convert.ToInt32(Math.Round(dataCount * (simObj.SimVal / 100), 0))).CopyToDataTable();
+                            }
+                        }
+                        else
+                        {
+                            dtRel = dt.AsEnumerable().Take(Convert.ToInt32(Math.Round(dataCount * (simObj.SimVal / 100), 0))).CopyToDataTable();
+                        }
+                        break;
+                    default:
+                        dtRel = dt.AsEnumerable().Take(Convert.ToInt32(Math.Round(simObj.SimVal, 0))).CopyToDataTable();
+                        break;
+                }
+
+                cacheData.DataTable = dtRel;
+                cacheData.DataCount = dtRel.Rows.Count;
+                var handler = new LegacyCodeHandler(_extractEngineDataHandlerlogger);
+                cacheData.DataColumns = handler.GenerateColumnDataForCache(cacheData.DataTable, cacheData.DataColumns);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("ExtractSimple失败：" + ex.ToString());
+                result = false;
+            }
+            return result;
+        }
+
+        public bool DataSampleExtractComplex(string node, DataSampleModel complexObj)
+        {
+            var result = true;
+            try
+            {
+               //to do
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("ExtractSimple失败：" + ex.ToString());
+                result = false;
+            }
+            return result;
+        }
+
+        public bool DataCombineAppend(string node, List<string> prevNodeIds, string fieldSource)
+        {
+            var result = true;
+            try
+            {
+                var mainData = GetDataFlowCache(prevNodeIds[0], "");
+                var secondData = GetDataFlowCache(prevNodeIds[1], "");
+
+                var table1 = mainData.DataTable;
+                var table2 = secondData.DataTable;
+                var modifyTable = table1.Copy();
+
+                if (fieldSource == "mainData")
+                {
+                    modifyTable.Merge(table2, true, MissingSchemaAction.Ignore);
+                }
+                else
+                {
+                    modifyTable.Merge(table2,true,MissingSchemaAction.Add);
+                }
+
+                var mainColumns = mainData.DataColumns.Select(x => x.Name).ToList();
+                var secondColumns = secondData.DataColumns.Select(x => x.Name).ToList();
+                //DataTable dt = new DataTable();
+                //if (fieldSource == "mainData")
+                //{
+                //    string[] colCommon = mainColumns.Intersect(secondColumns).ToArray();
+                //    dt = mainData.DataTable.Copy();
+                //    DataTable dt2 = secondData.DataTable.DefaultView.ToTable(false, colCommon);
+                //    foreach (DataRow itemR in dt2.Rows)
+                //    {
+                //        DataRow dr = dt.NewRow();
+                //        foreach (System.Data.DataColumn itemC in dt2.Columns)
+                //        {
+                //            dr[itemC] = itemR[itemC];
+                //        }
+                //        dt.Rows.Add(dr);
+                //    }
+                //}
+                //else
+                //{
+                //    string[] colCommon = mainColumns.Union(secondColumns).ToArray();
+                //    //获取两个数据源的并集
+                //    IEnumerable<DataRow> query2 = secondData.DataTable.AsEnumerable().Union(secondData.DataTable.AsEnumerable(), DataRowComparer.Default);
+                //    //两个数据源的并集集合
+                //    dt = query2.CopyToDataTable();
+                //}
+                var diffColumns = secondColumns.Except(mainColumns).ToList();
+                var data = new DataFlowCacheModel();
+                var handler = new LegacyCodeHandler(_extractEngineDataHandlerlogger);
+
+                var columns = mainData.DataColumns;
+                if (diffColumns.Count > 0)
+                {
+                    foreach(var r in diffColumns)
+                    {
+                        columns.Add(secondData.DataColumns.FirstOrDefault(x => x.Name == r));
+                    }
+                }
+                data.DataTable = modifyTable;
+                data.DataColumns = handler.GenerateColumnDataForCache(modifyTable, columns);
+                data.DataCount = modifyTable.Rows.Count;
+                data.DataSetInfo = mainData.DataSetInfo;
+                data.Id = mainData.Id;
+                data.Name = mainData.Name;
+                data.ProjectInfo = mainData.ProjectInfo;
+                data.TableName = mainData.TableName;
+                data.WdName = mainData.WdName;
+
+                SetDataFlowCache(data, node);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("ExtractSimple失败：" + ex.ToString());
+                result = false;
+            }
+            return result;
+        }
+
 
     }
 

@@ -66,7 +66,7 @@
                             {
                                 id: '6',
                                 type: 'dataSample',
-                                name: '样品管理',
+                                name: '样本管理',
                                 ico: 'el-icon-s-grid'
                             },
                             {

@@ -113,7 +113,7 @@ export default {
             param.filterType=this.filterType;
             param.filterPercent=this.filterPercent;
             this.$axios
-                .post("dataFlow/GetFilterCols", qs.stringify(param))
+                .post("dataFlow/GetDataFilterColumns", qs.stringify(param))
                 .then((res) => {
                   if (res.data && res.data.success) {
                      this.dataColumns=res.data.data;
@@ -142,7 +142,7 @@ export default {
           param.node = this.nodeId;
           param.ids=ids;
           this.$axios
-                .post("dataFlow/RemoveFilterCols", qs.stringify(param))
+                .post("dataFlow/DeleteDataFilterColumns", qs.stringify(param))
                 .then((res) => {
                   if (res.data && res.data.success) {
                     this.$message.success(res.data.msg);

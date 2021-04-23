@@ -1,4 +1,5 @@
-﻿using SqlSugar;
+﻿using Newtonsoft.Json;
+using SqlSugar;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -36,6 +37,7 @@ namespace KYTJ.Model
 
         public List<DFDataColumn> DataColumns { get; set; }
 
+        [JsonIgnore]
         public DataTable DataTable { get; set; }
     }
 
@@ -102,5 +104,37 @@ namespace KYTJ.Model
         public string LinkedName { get; set; }
         public string LinkedCode { get; set; }
     }
+
+    public class DataRowFilter
+    {
+        public string Column { get; set; }
+        public string Operation { get; set; }
+        public string Value { get; set; }
+    }
+
+    public class DataSampleModel
+    {
+        public string Method { get; set; }
+        public double SimVal { get; set; }
+        public int SimMax { get; set; }
+
+
+        //for complex
+        public string Category { get; set; }
+        public int FiledId { get; set; }
+
+        public decimal SampleSize { get; set; }
+
+    }
+
+    public class DataCombineSourceModel
+    {
+        public string OutColumn { get; set; }
+        public string MainColumn { get; set; }
+        public string SecondColumn { get; set; }
+    }
+
+
+
 
 }

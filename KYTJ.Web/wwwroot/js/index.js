@@ -53,7 +53,7 @@ layui.config({
     //iframe自适应
     $(window).on('resize', function () {
         var $content = $('.admin-nav-card .layui-tab-content');
-        $content.height($(this).height() - 147);
+        $content.height($(this).height() - 127);
         $content.find('iframe').each(function () {
             $(this).height($content.height());
         });

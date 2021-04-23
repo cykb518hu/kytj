@@ -47,6 +47,10 @@
         <flow-dataPreview v-if="flowDataPreviewVisible" ref="flowDataPreview" ></flow-dataPreview>
         <flow-dataFilter v-if="flowDataFilterVisible" ref="flowDataFilter"  ></flow-dataFilter>
         <flow-dataCalculate v-if="flowDataCalculateVisible" ref="flowDataCalculate" ></flow-dataCalculate>
+        <flow-dataRow v-if="flowDataRowVisible" ref="flowDataRow" ></flow-dataRow>
+        <flow-dataColumn v-if="flowDataColumnVisible" ref="flowDataColumn" ></flow-dataColumn>
+        <flow-dataSample v-if="flowDataSampleVisible" ref="flowDataSample" ></flow-dataSample>
+        <flow-dataCombine v-if="flowDataCombineVisible" ref="flowDataCombine" ></flow-dataCombine>
     </div>
 
 </template>
@@ -65,6 +69,10 @@
     import flowDataPreview from '@/components/ef/flow_dataPreview'
     import flowDataFilter from '@/components/ef/flow_dataFilter'
     import flowDataCalculate from '@/components/ef/flow_dataCalculate'
+    import flowDataRow from '@/components/ef/flow_dataRow'
+    import flowDataColumn from '@/components/ef/flow_dataColumn'
+    import flowDataSample from '@/components/ef/flow_dataSample'
+    import flowDataCombine from '@/components/ef/flow_dataCombine'
     import lodash from 'lodash'
     import { getDataInit } from './data_init'
     import { getDataFlowResult } from './utils'
@@ -100,13 +108,18 @@
                 flowDataSourceVisible:false,
                 flowDataPreviewVisible:false,
                 flowDataFilterVisible:false,
-                flowDataCalculateVisible:false
+                flowDataCalculateVisible:false,
+                flowDataRowVisible:false,
+                flowDataColumnVisible:false,
+                flowDataSampleVisible:false,
+                flowDataCombineVisible:false
             }
         },
         // 一些基础配置移动该文件中
         mixins: [easyFlowMixin],
         components: {
-            draggable, flowNode, nodeMenu, FlowInfo, FlowHelp,flowDataSource,flowDataPreview,flowDataFilter,flowDataCalculate
+            draggable, flowNode, nodeMenu, FlowInfo, FlowHelp,flowDataSource,flowDataPreview,flowDataFilter,flowDataCalculate,flowDataRow,flowDataColumn,flowDataSample,
+          flowDataCombine
         },
         directives: {
             'flowDrag': {
@@ -446,7 +459,7 @@
 
                    case "dataPreview":
                      this.flowDataPreviewVisible = true;
-                     var cache=this.getDataFlowCache();
+                     var cache=this.getDataFlowCache(true);
                      this.$nextTick(function () {
                           this.$refs.flowDataPreview.init(cache)
                        });
@@ -464,7 +477,35 @@
                      var cache=this.getDataFlowCache();
                      this.$nextTick(function () {
                           this.$refs.flowDataCalculate.init(nodeId,cache)
+                       });
+                       break;
+                    case "dataRow":
+                     this.flowDataRowVisible = true;
+                     var cache=this.getDataFlowCache();
+                     this.$nextTick(function () {
+                          this.$refs.flowDataRow.init(nodeId,cache)
+                       });
+                       break;
+                    case "dataColumn":
+                     this.flowDataColumnVisible = true;
+                     var cache=this.getDataFlowCache();
+                     this.$nextTick(function () {
+                          this.$refs.flowDataColumn.init(nodeId,cache)
+                       });
+                       break;
+                    case "dataSample":
+                     this.flowDataSampleVisible = true;
+                     var cache=this.getDataFlowCache();
+                     this.$nextTick(function () {
+                          this.$refs.flowDataSample.init(nodeId,cache)
                           //this.$refs.flowDataCalculate.test()
+                       });
+                       break;
+                    case "dataCombine":
+                     this.flowDataCombineVisible = true;
+                     var prevNodeIds=this.getPrevNodeIds();
+                     this.$nextTick(function () {
+                          this.$refs.flowDataCombine.init(nodeId,prevNodeIds)
                        });
                        break;
                 }
@@ -547,7 +588,7 @@
                 })
             },
 
-            getDataFlowCache(){
+            getDataFlowCache(caculateInfo=false){
                 var currentNodeId= "test";//this.activeElement.nodeId;
                 var prevNodeId;
                 for (var i = 0; i < this.data.lineList.length; i++) {
@@ -556,9 +597,8 @@
                         prevNodeId=line.from;
                     }
                 }
-                var res = getDataFlowResult(currentNodeId,prevNodeId);
+                var res = getDataFlowResult(currentNodeId,prevNodeId,caculateInfo);
                 if (res && res.success) {
-                  console.log(res.data);
                    return res.data;
 
                  } else {
@@ -566,7 +606,26 @@
                       console.log(res.msg);
                 }
 
+            },
+            getPrevNodeIds(){
+                var prevNodeIds=[];
+                for (var i = 0; i < this.data.lineList.length; i++) {
+                    let line = this.data.lineList[i]
+                    if (line.to === currentNodeId) {
+                        prevNodeIds.push(line.from)
+                    }
+                }
+                if (prevNodeIds.length=2) {
+                   return prevNodeIds;
+
+                 } else {
+                      this.$message.warning("数据整合必须有两个数据源");
+                      console.log(res.msg);
+                }
+
             }
+
+
         }
     }
 </script>

@@ -10,14 +10,14 @@ namespace KYTJ.Data.Repository
 {
     public interface IProjectRepository
     {
-        public List<ProjectModel> GetProjectAndSub(string userName);
+        List<ProjectModel> GetProjectAndSub(string userName);
         List<ProjectModel> Search(string userName, int pageIndex, int pageSize, ref int totalCount);
         bool DeleteProject(int id);
 
         bool AddProject(string projectName, string projectDesc, string userName);
-        bool EditProject(int id, string projectName, string projectDesc);
+        bool UpdateProject(int id, string projectName, string projectDesc);
 
-        ProjectModel GetProject(int projectId);
+        ProjectModel GetProjectById(int id);
     }
     public class ProjectRepository: KytjDbContext,IProjectRepository
     {
@@ -54,7 +54,7 @@ namespace KYTJ.Data.Repository
             }
             return result;
         }
-        public bool EditProject(int id, string projectName, string projectDesc)
+        public bool UpdateProject(int id, string projectName, string projectDesc)
         {
             var result = false;
             try
@@ -116,18 +116,18 @@ namespace KYTJ.Data.Repository
             return resultsTask;
         }
 
-        public ProjectModel GetProject(int projectId)
+        public ProjectModel GetProjectById(int id)
         {
             var resultsTask = new ProjectModel();
             try
             {
                 var query = _dbKyStatic.Queryable<ProjectModel>();
-                resultsTask = query.Where(x => x.Id == projectId)
+                resultsTask = query.Where(x => x.Id == id)
                 .ToList().FirstOrDefault();
             }
             catch (Exception ex)
             {
-                _logger.LogError("查询项目及其数据失败GetProject：" + ex.ToString());
+                _logger.LogError("GetProject：" + ex.ToString());
             }
             return resultsTask;
         }

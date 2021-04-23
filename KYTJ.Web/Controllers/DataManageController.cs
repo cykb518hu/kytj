@@ -17,6 +17,7 @@ namespace KYTJ.Web.Controllers
         private readonly IDataManageRepository _dataManageRepository;
 
 
+        //rd  就是result data 
         public DataManageController(ILogger<DataManageController> logger, IDataManageRepository dataManageRepository)
         {
             _logger = logger;
@@ -31,16 +32,13 @@ namespace KYTJ.Web.Controllers
         {
             return View();
         }
-
-
-
         public JsonResult SearchRdColumnList(int resultDataId, int pageIndex = 1, int pageSize = 10)
         {
             try
             {
 
                 var total = 0;
-                var userName = SSOUser.GetUser();// HttpContext.User.Identity.Name;
+                var userName = SSOUser.GetUserName();// HttpContext.User.Identity.Name;
                 var data = _dataManageRepository.SearchRdColumnList(resultDataId, pageIndex, pageSize, ref total);
                 return Json(new { success = true, data, total });
             }
@@ -69,12 +67,12 @@ namespace KYTJ.Web.Controllers
             }
         }
 
-        public JsonResult CopyResultData(int resultDataId)
+        public JsonResult CopyRd(int resultDataId)
         {
             try
             {
                 var result = false;
-                result = _dataManageRepository.CopyResultData(resultDataId);
+                result = _dataManageRepository.CopyRd(resultDataId);
                 var msg = "操作成功";
                 if (!result)
                 {
@@ -88,30 +86,12 @@ namespace KYTJ.Web.Controllers
             }
         }
 
-        public JsonResult UpdateResultDataName(int resultDataId, string Name)
+        public JsonResult UpdateRdName(int resultDataId, string Name)
         {
             try
             {
                 var result = false;
-                result = _dataManageRepository.UpdateResultDataName(resultDataId,Name);
-                var msg = "操作成功";
-                if (!result)
-                {
-                    msg = "操作失败";
-                }
-                return Json(new { success = result, msg });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, msg = ex.ToString() });
-            }
-        }
-        public JsonResult Test(int resultDataId,string name)
-        {
-            try
-            {
-                var result = false;
-               // result = _dataManageRepository.UpdateResultDataName(resultDataId,name);
+                result = _dataManageRepository.UpdateRdName(resultDataId,Name);
                 var msg = "操作成功";
                 if (!result)
                 {

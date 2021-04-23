@@ -99,7 +99,7 @@ export default {
       var data = {};
       data.resultDataId = this.dataForm.resultDataId;
       this.$axios
-        .post("dataManage/CopyResultData", qs.stringify(data))
+        .post("dataManage/CopyRd", qs.stringify(data))
         .then((res) => {
           if (res.data && res.data.success) {
             this.$message.success(res.data.msg);
@@ -135,7 +135,7 @@ export default {
           data.resultDataId = this.dataForm.resultDataId;
           data.name = value;
           this.$axios
-            .post("dataManage/UpdateResultDataName", qs.stringify(data))
+            .post("dataManage/UpdateRdName", qs.stringify(data))
             .then((res) => {
               if (res.data && res.data.success) {
                 this.$message.success(res.data.msg);

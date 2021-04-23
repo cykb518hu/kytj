@@ -14,10 +14,12 @@ namespace KYTJ.Web.Controllers
     {
         private readonly ILogger<DataSetController> _logger;
         private readonly IDataSetRepository _dataSetRepository;
-        public DataSetController(ILogger<DataSetController> logger, IDataSetRepository dataSetRepository)
+        private readonly ILogRepository _logRepository;
+        public DataSetController(ILogger<DataSetController> logger, IDataSetRepository dataSetRepository, ILogRepository logRepository)
         {
             _logger = logger;
             _dataSetRepository = dataSetRepository;
+            _logRepository = logRepository;
         }
 
         public IActionResult Index()
@@ -26,11 +28,12 @@ namespace KYTJ.Web.Controllers
         }
         public IActionResult SearchEngine()
         {
+            _logRepository.Add("查看数据集抽取页面");
             return View();
         }
         public ActionResult DatasetList()
         {
-
+            _logRepository.Add("查看数据集管理页面");
             return View();
         }
 
@@ -43,8 +46,8 @@ namespace KYTJ.Web.Controllers
                     dataName = "";
                 }
                 var total = 0;
-                var userName = SSOUser.GetUser();// HttpContext.User.Identity.Name;
-                var data = _dataSetRepository.SearchEngineDataList( userName, dataName, pageIndex, pageSize, ref total);
+                var userName = SSOUser.GetUserName();// HttpContext.User.Identity.Name;
+                var data = _dataSetRepository.SearchEngineDataList(userName, dataName, pageIndex, pageSize, ref total);
                 return Json(new { success = true, data, total });
             }
             catch (Exception ex)
@@ -57,14 +60,15 @@ namespace KYTJ.Web.Controllers
         {
             try
             {
-                var userName = SSOUser.GetUser();// HttpContext.User.Identity.Name;
-                _dataSetRepository.ExtractEngineData(exportDataId, projectId,userName);
-                var data = true;
-                var msg = "正在执行,请到数据集管理查看状态";
-                if (!data)
+                _logRepository.Add("抽取数据", "", "", "", $"抽取数据源ID:{exportDataId},项目id:{projectId}");
+                Task t = Task.Run(() =>
                 {
-                    msg = "删除失败";
-                }
+                    var userName = SSOUser.GetUserName();// HttpContext.User.Identity.Name;
+                    _dataSetRepository.ExtractEngineData(exportDataId, projectId, userName);
+                });
+               
+                var data = true;
+                var msg = "任务已提交,请稍后到数据集管理查看状态";
                 return Json(new { success = data, msg });
             }
             catch (Exception ex)
@@ -83,7 +87,7 @@ namespace KYTJ.Web.Controllers
                     dataSetName = "";
                 }
                 var total = 0;
-                var userName = SSOUser.GetUser();// HttpContext.User.Identity.Name;
+                var userName = SSOUser.GetUserName();// HttpContext.User.Identity.Name;
                 var data = _dataSetRepository.SearchDataSetList(dataSetName, userName, pageIndex, pageSize,ref total );
                 return Json(new { success = true, data, total });
             }
@@ -97,7 +101,7 @@ namespace KYTJ.Web.Controllers
         {
             try
             {
-
+                _logRepository.Add("删除数据集", "", "", "", $"数据集DataSetId:{dataSetId}");
                 var data = _dataSetRepository.DeleteDataSet(dataSetId);
                 var msg = "删除成功";
                 if (!data)
@@ -116,10 +120,11 @@ namespace KYTJ.Web.Controllers
         {
             try
             {
+                _logRepository.Add("修改数据集", "", "", "", $"数据集DataSetId:{data.DataSetId}");
                 var result = false;
-                var userName = SSOUser.GetUser();
+                var userName = SSOUser.GetUserName();
 
-                result = _dataSetRepository.EditDataSet(data);
+                result = _dataSetRepository.UpdateDataSet(data);
 
                 var msg = "操作成功";
                 if (!result)
@@ -147,25 +152,5 @@ namespace KYTJ.Web.Controllers
             }
         }
 
-        public JsonResult Test(int projectId)
-        {
-            try
-            {
-                var msg = "ss";
-                //var result = true;
-                //Int32 nullCount = 12;
-                //int dataCount = 17;
-                //var NullPercent = ((double)nullCount / dataCount).ToString("P");
-                ////_dataSetRepository.AddRdDataColumns();
-                ///
-
-                var data = _dataSetRepository.GetDataSetAndSub(projectId);
-                return Json(new { success = true, data, msg });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, msg = ex.ToString() });
-            }
-        }
     }
 }

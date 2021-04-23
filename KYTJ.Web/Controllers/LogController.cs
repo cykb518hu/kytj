@@ -1,5 +1,6 @@
 ﻿using KYTJ.Data.Repository;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SSO.Client;
 using System;
@@ -13,9 +14,12 @@ namespace KYTJ.Web.Controllers
     public class LogController : KYTJControllerBase
     {
         private readonly ILogRepository _logRepository;
-        public LogController (ILogRepository logRepository)
+
+        private readonly ILogger<LogController> _logger;
+        public LogController (ILogRepository logRepository, ILogger<LogController> logger)
         {
             _logRepository = logRepository;
+            _logger = logger;
         }
         public IActionResult Index()
         {
@@ -36,7 +40,7 @@ namespace KYTJ.Web.Controllers
                     DateTime.TryParse(logDateRange[1].Substring(0, 24), out endDate);
                 }
                 var role = "11admin";// HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role).Value;
-                var userName = SSOUser.GetUser();// HttpContext.User.Identity.Name;
+                var userName = SSOUser.GetUserName();// HttpContext.User.Identity.Name;
                 if (startDate == endDate)
                 {
                     endDate = endDate.AddDays(1);
@@ -47,35 +51,11 @@ namespace KYTJ.Web.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError("查询操作日志错误：" + ex.ToString());
+                 _logger.LogError("查询操作日志错误：" + ex.ToString());
                 return Json(new { success = false, msg = ex.ToString() });
             }
         }
 
 
-    }
-
-    public class OperationLogOutPut
-    {
-
-        /// <summary>
-        /// 描述
-        /// </summary>
-        [JsonProperty("action")]
-        public string Action { get; set; }
-
-
-        /// <summary>
-        /// 创建人
-        /// </summary>
-        /// 
-        [JsonProperty("createdBy")]
-        public string CreatedBy { get; set; }
-
-        /// <summary>
-        /// 时间
-        /// </summary>
-        [JsonProperty("createdOn")]
-        public string CreatedOn { get; set; }
     }
 }

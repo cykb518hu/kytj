@@ -13,7 +13,6 @@ body {
 body {
     font-family: 'Microsoft YaHei';
     font-size: 12px;
-    color: #fff;
 }
 /*#endregion */
 /*#region main area */
@@ -180,7 +179,7 @@ body {
 }
 
 .el-dialog__headerbtn {
-    top: 0;
+    top: 10px;
     right: 10px;
     font-size: rgba(255, 255, 255, 0.8);
 }
@@ -369,79 +368,19 @@ label {
 
 .el-button {
     font-size: 12px;
-    height: 28px;
+
     line-height: 28px;
     border-radius: 3px;
     text-align: center;
     padding: 0 12px;
-    border: none;
+
     vertical-align: middle;
 }
 
-    .el-button:link,
-    .el-button:visited,
-    .el-button:active,
-    .el-button:hover,
-    .el-button::before,
-    .el-button::after,
-    .el-button:focus,
-    .el-button:active:focus {
-        color: #fff;
-        background: #0278e4;
-    }
-
-    .el-button:hover {
-        background: rgba(2, 120, 228, 0.8);
-    }
-
-.close-button {
-    background: #646464 !important;
-}
-
-    .close-button:link,
-    .close-button:visited,
-    .close-button:active,
-    .close-button:hover,
-    .close-button::before,
-    .close-button::after,
-    .close-button:focus,
-    .close-button:active:focus {
-        color: #fff;
-        background: #646464 !important;
-    }
-
-    .close-button:hover {
-        background: rgba(100, 100, 100, 0.8) !important;
-    }
-
-.delete-button {
-    background: #ff6666 !important;
-}
-
-    .delete-button:link,
-    .delete-button:visited,
-    .delete-button:active,
-    .delete-button:hover,
-    .delete-button::before,
-    .delete-button::after,
-    .delete-button:focus,
-    .delete-button:active:focus {
-        color: #fff !important;
-        background: #ff6666 !important;
-    }
-
-    .delete-button:hover {
-        background: rgba(255, 102, 102, 0.8) !important;
-    }
-
-.btn-link {
-    background: none !important;
-    background-color: none !important;
-}
+   
 /*#endregion */
-
-/*#region el-table */
-.el-table {
+        /*#region el-table */
+        .el-table {
     font-size: 12px;
 }
 
@@ -449,10 +388,11 @@ label {
         padding: 6px 0;
     }
 
-    .el-table th {
-        padding: 3px 0;
-        background: #eee;
-    }
+            .el-table th {
+                padding: 6px 0;
+                font-size: 14px;
+                color: #606266;
+            }
 /*#endregion */
 
 
@@ -465,7 +405,7 @@ label {
 }
 
 .el-input__inner {
-    height: 28px;
+    height: 32px;
     line-height: 28px;
     font-size: 12px;
 }
@@ -736,3 +676,64 @@ el-upload input[type="file"] {
 .el-popover {
     font-size: 12px;
 }
+
+/*#region el-card */
+.el-card {
+
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+
+
+    .el-card:hover {
+        background: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .el-card .el-card__body {
+        padding: 15px 20px 10px 0;
+    }
+
+    .el-card .logo-badge {
+        height: 60px;
+        width: 60px;
+        line-height: 60px;
+        border-radius: 50%;
+        text-align: center;
+        font-size: 22px;
+        vertical-align: middle;
+        display: inline-block;
+        min-width: 10px;
+        color: #fff;
+        white-space: nowrap;
+        font-weight: normal;
+    }
+
+    .el-card .bottom {
+        margin-bottom: 10px;
+    }
+
+    .el-card .date {
+        font-size: 12px;
+    }
+/*#endregion */
+
+/*#region base color of  bg-red, bg-blue, bg-green, bg-organge */
+.bg-red {
+    background: #ff6666;
+}
+
+.bg-blue {
+    background: #0278e4;
+}
+
+.bg-green {
+    background: #00b37a;
+}
+
+.bg-organge {
+    background: #ff9900;
+}
+/*#endregion */

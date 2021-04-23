@@ -3,8 +3,8 @@
     Layout = "~/Views/Shared/_TableLayout.cshtml";
 }
 
-<div id="mainArea">
-    <el-col :span="24">
+<div id="mainArea" v-loading.fullscreen.lock="fullscreenLoading">
+
         <div>
             <el-row :gutter="10">
                 <el-col :span="24" class="text-right">
@@ -16,61 +16,76 @@
 
         </div>
         <div style="margin-top:10px">
-            <el-table v-bind:data="projectList"
-                      v-loading="loading"
-                      style="width: 100%">
-                <el-table-column prop="projectName"
-                                 label="项目名称" min-width="20%">
-                </el-table-column>
-                <el-table-column prop="projectDesc"
-                                 label="备注" min-width="25%">
-                </el-table-column>
 
-                <el-table-column prop="userName"
-                                 label="创建人" min-width="10%">
-                </el-table-column>
+            <el-row :gutter="10">
+                <el-col :span="6" v-for="project,index in projectList" v-bind:key="project.id">
+                    <el-card body-style="{ padding: '0px' }" class="el-card">
+                        <div class="pointer">
+                            <el-col :span="8" style="padding:0px;">
+                                <div style="text-align:center; vertical-align:middle; margin-top:12px;">
+                                    <div class="logo-badge" v-bind:class="[basicColor[index%6]]">
+                                        <span>
+                                            {{project.projectName.substring(0,1)}}
+                                        </span>
+                                    </div>
+                                </div>
+                            </el-col>
+                            <el-col :span="16" style="padding:0px">
+                                <div v-cloak>
+                                    <div style="margin-bottom:5px;">
+                                        {{project.projectName}}
+                                        <br />
+                                        <br />
+                                        <span style="font-size:12px; "
+                                              class="span-number-color">
+                                            备注: {{project.projectDesc}}
+                                        </span>
+                                    </div>
+                                    <div >
+                                        <time class="date">更新时间: {{ project.createTime }}</time>
+                                    </div>
+                                    <div class="bottom clearfix">
+                                        <i class="el-icon-menu edit" v-on:click="maintainProject()"
+                                           style="padding-right:6px; padding-top:6px;font-size:20px"></i>
+                                        <i class="el-icon-edit edit" v-on:click="onEditProject(project)"
+                                           style="padding-top:6px;font-size:20px"></i>
+                                        <i class="el-icon-delete recycle" v-on:click="showDeleteProjectDlg(project.id)"
+                                           style="padding-top:6px; font-size:20px"></i>
 
-                <el-table-column prop="createTime"
-                                 label="创建时间" min-width="15%">
-                </el-table-column>
-                <el-table-column prop="updateTime"
-                                 label="更新时间" min-width="15%">
-                </el-table-column>
+                                    </div>
+                                </div>
+                            </el-col>
+                        </div>
+                    </el-card>
+                </el-col>
+                <el-col :span="6">
+                    <div style="text-align:center;line-height:10;">
+                    </div>
+                </el-col>
+            </el-row>
 
-                <el-table-column label="操作" min-width="15%">
-                    <template slot-scope="scope">
-                        <el-link type="primary">画布</el-link>
-                        <el-link type="primary" v-on:click="onEditProject(scope.row)" >编辑</el-link>
-                        <el-link type="primary" v-on:click="showDeleteProjectDlg(scope.row.id)">删除</el-link>
-                    </template>
-                </el-table-column>
-            </el-table>
-            <el-pagination background style="float:right;"
-                           layout="total, prev, pager, next"
-                           v-on:current-change="searchList"
-                           v-bind:total="total"
-                           v-bind:current-page.sync="pageIndex">
-            </el-pagination>
         </div>
-    </el-col>
 
-    <el-dialog title="提示" :visible.sync="deleteProjectDlg" top="5vh" center>
-        <div class="del-dialog-cnt">删除不可恢复，是否确定删除？</div>
+
+    <el-dialog title="提示" :visible.sync="deleteProjectDlg" top="5vh" width="30%" center :close-on-click-modal="false">
+        <div style="padding-left:20px; margin-bottom:10px">确定要删除该项目吗？</div>
         <span slot="footer" class="dialog-footer">
             <el-button v-on:click="deleteProjectDlg=false">取 消</el-button>
             <el-button type="primary" v-on:click="deleteProject">确 定</el-button>
         </span>
     </el-dialog>
 
-    <el-dialog title="操作" v-bind:visible.sync="projectDetailDlg" top="5vh">
-        <div style="min-height:250px;overflow-x:hidden;">
-            <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+    <el-dialog title="编辑项目" v-bind:visible.sync="projectDetailDlg" top="5vh" width="40%" center :close-on-click-modal="false">
+        <div style="min-height:200px;padding-right:50px">
+            <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px">
                 <el-form-item label="项目名称" prop="projectName">
-                    <el-input  v-model="ruleForm.projectName" ></el-input>
+                    <el-input v-model="ruleForm.projectName"  ></el-input>
                 </el-form-item>
+                <br />
                 <el-form-item label="项目描述" prop="projectDesc">
-                    <el-input v-model="ruleForm.projectDesc"></el-input>
+                    <el-input v-model="ruleForm.projectDesc" ></el-input>
                 </el-form-item>
+                <br />
                 <el-form-item>
                     <el-button type="primary" v-on:click="submitProjectForm('ruleForm')">提交</el-button>
                     <el-button v-on:click="projectDetailDlg=false">取消</el-button>
@@ -85,10 +100,9 @@
         'el': '#mainArea',
         data: function () {
             return {
+                basicColor: ["bg-blue", "bg-green", "bg-organge", "bg-green", "bg-red", "bg-green", "bg-blue"],
                 projectList: [],
-                total: 0,
-                pageIndex: 1,
-                loading: false,
+                fullscreenLoading: false,
                 deleteProjectDlg: false,
                 projectDetailDlg: false,
                 projectId: 0,
@@ -99,7 +113,8 @@
                 rules: {
                     projectName: [{ required: true, message: '请输入项目名称', trigger: 'blur' }],
                     projectDesc: [{ required: true, message: '请输入项目描述', trigger: 'blur' }]
-                }
+                },
+                huabuindex: 0,
 
             };
         },
@@ -110,24 +125,23 @@
             },
             searchList: function () {
                 var param = {};
-                param.pageIndex = this.pageIndex;
-                param.pageSize = 10;
-                this.loading = true;
+                param.pageIndex = 1;
+                param.pageSize = 100;
+                this.fullscreenLoading = true;
                 var that = this;
                 $.ajax({
-                    url: "/Home/SearchProjectList",
+                    url: "/Project/Search",
                     type: "GET",
                     data: param,
                     dataType: 'json',
                     success: function (data) {
                         if (data && data.success) {
                             that.projectList = data.data;
-                            that.total = data.total;
                         }
                         else {
                             console.log(data.msg);
                         }
-                        that.loading = false;
+                        that.fullscreenLoading = false;
                     }
                 });
             },
@@ -152,7 +166,7 @@
                 param.id = this.projectId;
                 var that = this;
                 $.ajax({
-                    url: "/Home/DeleteProject",
+                    url: "/Project/DeleteProject",
                     type: "Post",
                     data: param,
                     dataType: 'json',
@@ -182,7 +196,7 @@
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
                         $.ajax({
-                            url: "/Home/MaintainProject",
+                            url: "/Project/MaintainProject",
                             type: "Post",
                             data: param,
                             dataType: 'json',
@@ -208,6 +222,15 @@
                         console.log('error submit!!');
                         return false;
                     }
+                });
+            },
+
+            maintainProject: function () {
+                this.huabuindex++;
+                top.tab.tabAdd({
+                    href: "/dist/index.html",
+                    icon: 'fa-cubes',
+                    title: '画布演示' + this.huabuindex++
                 });
             }
         },

@@ -12,6 +12,10 @@ import axios from "axios"
 axios.defaults.baseURL="http://localhost:13066/";
 Vue.prototype.$axios=axios;
 
+const echarts = require('echarts')
+Vue.prototype.$echarts=echarts
+
+
 Vue.use(ElementUI, {size: 'small'})
 
 /* eslint-disable no-new */

@@ -3,79 +3,81 @@
     Layout = "~/Views/Shared/_TableLayout.cshtml";
 }
 
-<div id="mainArea">
-    <el-col :span="24">
+<div id="mainArea" v-loading.fullscreen.lock="fullscreenLoading">
+
+    <div>
         <el-row :gutter="10">
-            <el-col :span="6">
-                <el-select v-model="SelectForm.projectId" placeholder="请选项目" v-on:change="projectTrigger()">
+            <el-col :span="24">
+                选择项目：<el-select v-model="SelectForm.projectId" placeholder="请选择项目" v-on:change="projectTrigger()">
                     <el-option v-for="item in SelectForm.projectList"
                                :key="item.id"
                                :label="item.projectName"
                                :value="item.id">
                     </el-option>
                 </el-select>
-            </el-col>
-            <el-col :span="6">
-                <el-select v-model="SelectForm.dataSetId" placeholder="请选数据集" v-on:change="dataSetTrigger()">
+                &nbsp;
+                选择数据：<el-select v-model="SelectForm.dataSetId" placeholder="请选择数据" v-on:change="dataSetTrigger()">
                     <el-option v-for="item in SelectForm.dataSetList"
                                :key="item.dataSetId"
                                :label="item.dataSetName"
                                :value="item.dataSetId">
                     </el-option>
                 </el-select>
-            </el-col>
-            <el-col :span="6">
-                <el-select v-model="SelectForm.resultDataId" placeholder="请选数据">
+                &nbsp;
+                选择数据集：<el-select v-model="SelectForm.resultDataId" placeholder="请选择数据集">
                     <el-option v-for="item in SelectForm.resultDataList"
                                :key="item.id"
                                :label="item.name"
                                :value="item.id">
                     </el-option>
                 </el-select>
-            </el-col>
-            <el-col :span="6" class="text-right">
-                <el-button v-on:click="onSearch" type="primary">搜索</el-button>
+
+                &nbsp;
+                <el-button v-on:click="onSearch" type="primary">查看</el-button>
             </el-col>
         </el-row>
-        <div>
+    </div>
+    <div>
 
-            <el-table v-bind:data="DataCheckList"
-                      v-loading="loading"
-                      style="width: 100%">
-                <el-table-column prop="name"
-                                 label="字段名" min-width="30%">
-                </el-table-column>
+        <el-table v-bind:data="DataCheckList"
+                  stripe
+                  style="width: 100%">
+            <el-table-column prop="name"
+                             label="字段名" min-width="30%">
+            </el-table-column>
 
 
-                <el-table-column prop="rem"
-                                 label="重命名" min-width="30%" >
-                </el-table-column>
+            <el-table-column prop="rem"
+                             label="重命名" min-width="30%">
+            </el-table-column>
 
-                <el-table-column prop="nullPercent"
-                                 label="空值占比" min-width="15%">
-                </el-table-column>
+            <el-table-column prop="nullPercent"
+                             label="空值占比" min-width="15%">
+            </el-table-column>
 
-                <el-table-column
-                                 label="类型" min-width="15%" :formatter="isContinuousFormatter">
-                </el-table-column>
+            <el-table-column label="类型" min-width="15%" :formatter="isContinuousFormatter">
+            </el-table-column>
 
-                <el-table-column label="操作" min-width="10%">
-                    <template slot-scope="scope">
-                        <el-link type="primary" v-on:click="showRemDlg(scope.row)">编辑</el-link>
-                        <el-link type="primary" v-on:click="showDeleteDlg(scope.row.dataSetId)">填充</el-link>
-                    </template>
-                </el-table-column>
-            </el-table>
-            <el-pagination background style="float:right;"
-                           layout="total, prev, pager, next"
-                           v-on:current-change="searchList"
-                           v-bind:total="total"
-                           v-bind:current-page.sync="pageIndex">
-            </el-pagination>
-        </div>
-    </el-col>
+            <el-table-column label="操作" min-width="10%">
+                <template slot-scope="scope">
+                    <el-link type="primary" v-on:click="showRemDlg(scope.row)">编辑</el-link>
+                    <el-link type="primary" v-on:click="showDeleteDlg(scope.row.dataSetId)">填充</el-link>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-pagination background style="float:right;"
+                       layout="total,sizes, prev, pager, next"
+                       :page-sizes="[10, 15, 20, 50]"
+                       v-on:current-change="searchList"
+                       v-on:size-change="onSearch"
+                       v-bind:total="total"
+                       v-bind:current-page.sync="pageIndex"
+                       v-bind:page-size.sync="pageSize">
+        </el-pagination>
+    </div>
 
-    <el-dialog title="编辑" v-bind:visible.sync="editRemDlg" top="5vh">
+
+    <el-dialog title="编辑" v-bind:visible.sync="editRemDlg" top="5vh" width="40%"  :close-on-click-modal="false">
         <div style="min-height:250px;overflow-x:hidden;">
             <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
                 <el-form-item label="重命名" prop="rem">
@@ -106,7 +108,8 @@
                 DataCheckList: [],
                 total: 0,
                 pageIndex: 1,
-                loading: false,
+                pageSize:10,
+                fullscreenLoading: false,
                 dataSetName: "",
                 editRemDlg: false,
                 deleteDlg: false,
@@ -137,9 +140,9 @@
             searchList: function () {
                 var param = {};
                 param.pageIndex = this.pageIndex;
-                param.pageSize = 10;
+                param.pageSize = this.pageSize;
                 param.resultDataId = this.SelectForm.resultDataId;
-                this.loading = true;
+                this.fullscreenLoading = true;
                 var that = this;
                 $.ajax({
                     url: "/DataManage/SearchRdColumnList",
@@ -154,7 +157,7 @@
                         else {
                             console.log(data.msg);
                         }
-                        that.loading = false;
+                        that.fullscreenLoading = false;
                     }
                 });
             },
@@ -260,8 +263,9 @@
         mounted: function () {
             //初始化下拉框值
             var that = this;
+            this.fullscreenLoading = true;
             $.ajax({
-                url: "/Home/SearchProjectAndSub",
+                url: "/Project/GetProjectAndSub",
                 type: "GET",
                 dataType: 'json',
                 success: function (data) {
@@ -272,6 +276,7 @@
                     else {
                         console.log(data.msg);
                     }
+                    that.fullscreenLoading = false;
                 }
             });
         }

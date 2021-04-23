@@ -8,28 +8,28 @@ var navs = [{
         {
             "title": "项目主页",
             "icon": "fa-area-chart",
-            "href": postPath + "/Home/Project"
+            "href": postPath + "/Project/Index"
         },
         {
-            "title": "数据集抽取",
+            "title": "数据抽取",
             "icon": "fa-chain-broken",
-            "href": postPath + "/Dataset/SearchEngine?v=" + Math.random(),
+            "href": postPath + "/Dataset/SearchEngine",
         },
         {
             "title": "数据集管理",
             "icon": "fa-align-justify",
-            "href": postPath + "/Dataset/DatasetList?v=" + Math.random(),
+            "href": postPath + "/Dataset/DatasetList",
         },
 
         {
             "title": "数据集检查",
             "icon": "fa fa-check-circle",
-            "href": postPath + "/DataManage/DataCheck?v=" + Math.random(),
+            "href": postPath + "/DataManage/DataCheck",
         },
         {
             "title": "操作日志",
             "icon": "fa-envelope-open-o",
-            "href": postPath + "/dist/index.html?v=" + Math.random(),
+            "href": postPath + "/Log/index",
         }
     ]
 }

@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@using KYTJ.Infrastructure.Model; 
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -9,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="format-detection" content="telephone=no">
     <link href="favicon.ico" rel="shortcut icon">
-    <title>@ViewData["Title"] - KYTJ.Web</title>
+    <title>科研统计系统</title>
     <link rel="stylesheet" href="~/css/global.css" asp-append-version="true" />
 
     <link rel="stylesheet" href="~/lib/layui/css/layui.css" />
@@ -28,7 +30,7 @@
                 <div class="admin-login-box">
                     <div class="logo" style="left: 0;">
                         <div>
-                            <img src="~/images/logo1.png" /><span style="color:white;margin-left:10px;vertical-align:middle;font-weight:bolder;font-size:17px;">健康医疗大数据统一工作平台</span><span style="color:white;margin-left:10px;vertical-align:middle">统计分析</span>
+                            <img src="@GlobalSetting.Logo" /><span style="color:white;margin-left:10px;vertical-align:middle;font-weight:bolder;font-size:17px;">数据智能化加工分析平台</span><span style="color:white;margin-left:10px;vertical-align:middle"></span>
                         </div>
 
                     </div>
@@ -61,16 +63,16 @@
             <div class="layui-tab admin-nav-card layui-tab-brief" lay-filter="admin-tab">
                 <ul class="layui-tab-title">
                     <li class="layui-this">
-                        <i class="fa fa-dashboard" aria-hidden="true"></i>
+                        <i class="fa fa-area-chart" aria-hidden="true"></i>
                         <cite>项目主页</cite>
                     </li>
                 </ul>
-                <div class="layui-tab-content" style="min-height: 150px; padding: 5px 0 0 0;">
+                <div class="layui-tab-content" style="min-height: 150px; padding: 0px 0 0 0;">
                     <div class="layui-tab-item layui-show">
 
-                        <iframe id="homeFram" src='@Url.Action("Project","Home")'>
-                    @RenderBody()
-                       </iframe>
+                        <iframe id="homeFram" src='@Url.Action("Index","Project")'>
+                            @RenderBody()
+                        </iframe>
                     </div>
                 </div>
             </div>

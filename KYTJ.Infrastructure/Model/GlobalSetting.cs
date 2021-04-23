@@ -7,6 +7,8 @@ namespace KYTJ.Infrastructure.Model
     public class GlobalSetting
     {
         public static string Logo { get; set; }
+
+        public static string Title { get; set; }
         public static string SqlFilePath { get; set; }
 
         public static string RScriptRunnerPath { get; set; }

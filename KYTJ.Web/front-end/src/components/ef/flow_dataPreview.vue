@@ -119,8 +119,8 @@
     </el-table>
 
           </div>
-          <div>
-            <div id="myChart" ></div>
+          <div style="margin-top:20px">
+            <div id="myChart" :style="{width: '100%', height: '300px'}" ></div>
           </div>
 
         </div></el-col>
@@ -159,7 +159,67 @@ export default {
         viewDetail(row){
           this.selectedRow=row;
           this.selectedRow.info=JSON.parse(row.statisticsInfo);
+          this.drawBar();
+
+        },
+        drawBar(){
+        // 基于准备好的dom，初始化echarts实例
+        let myChart = this.$echarts.init(document.getElementById('myChart'))
+        let xAxisData=[];
+        let seriesData=[];
+        let rotate=0;
+        if(this.selectedRow.isContinuous){
+          //借用nullPercent 字段
+          let colStatis=JSON.parse(this.selectedRow.nullPercent);
+          colStatis.map((item)=> {
+              xAxisData.push(item.value);
+              seriesData.push(item.count)
+              })
+
         }
+        else{
+             //分类直接获取数据
+             this.selectedRow.info.map((item)=> {
+              xAxisData.push(item.value);
+              seriesData.push(item.count)
+          })
+
+        }
+        if(xAxisData.length>4){
+            rotate=45;
+        }
+
+        myChart.setOption({
+            title: {
+              text: '数据分布图' ,
+              x:'center',
+              y:'top',
+              textAlign:'center'
+            },
+            tooltip: {},
+            xAxis: {
+                type: 'category',
+                data: xAxisData,
+                axisLabel: {
+                    interval: 0,
+                    rotate: rotate,
+                    //倾斜度 -90 至 90 默认为0  
+                    margin: 5
+                }
+            },
+            yAxis: {
+                type: 'value'
+            },
+            grid:{
+            	top:40					//---相对位置，top\bottom\left\right
+            },
+            series: [{
+                data: seriesData,
+                type: 'bar'
+
+            }]
+        });
+    }
 
   }
 };

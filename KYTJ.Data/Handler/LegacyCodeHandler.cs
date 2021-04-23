@@ -13,10 +13,10 @@ using System.Text.RegularExpressions;
 
 namespace KYTJ.Data.Handler
 {
-    public class ExtractEngineDataHandler: KytjDbContext
+    public class LegacyCodeHandler: KytjDbContext
     {
-        private readonly ILogger<DataSetRepository> _logger;
-        public ExtractEngineDataHandler(ILogger<DataSetRepository> logger)
+        private readonly ILogger<LegacyCodeHandler> _logger;
+        public LegacyCodeHandler(ILogger<LegacyCodeHandler> logger)
         {
             _logger = logger;
         }
@@ -277,6 +277,59 @@ namespace KYTJ.Data.Handler
                 throw ex;
             }
         }
+        public List<DFDataColumn> GenerateColumnDataForCache(DataTable dt, List<DFDataColumn> columns)
+        {
+            var result = new List<DFDataColumn>();
+            try
+            {
+                var dataCount = dt.Rows.Count;
+                for (int i = 0; i < dt.Columns.Count; i++)
+                {
+                    var name = dt.Columns[i].ColumnName;
+                    var col = new RdDataColumn();
+                    col.GroupingTags = new List<RdGroupingTag>();
+                    col.Name = name;
+                    col.Rem = name;
+                    var kindCount = 0;
+                    var nullCount = 0;
+                    List<RdGroupingTag> tags = new List<RdGroupingTag>();
+                    var colStat = GenerateColumnStatistics(dt, col, dataCount, out kindCount, out tags, out nullCount);
+
+                    col.StatisticsInfo = JsonConvert.SerializeObject(colStat);
+                    col.IsContinuous = (kindCount == 0);
+                    col.KindCount = kindCount;
+                    col.NullPercent = ((double)nullCount / dataCount).ToString("P");
+
+                    var dataColumnTags = new List<DFGroupingTag>();
+                    foreach (var r in col.GroupingTags)
+                    {
+                        dataColumnTags.Add(new DFGroupingTag
+                        {
+                            Id = r.Id,
+                            Name = r.Name,
+                            Index = r.Index
+                        });
+                    }
+                    var column = columns.FirstOrDefault(x => x.Name == name);
+                    result.Add(new DFDataColumn {
+                        Id=column.Id,
+                        Name=column.Name,
+                        Rem=column.Rem,
+                        IsContinuous=col.IsContinuous,
+                        KindCount=col.KindCount,
+                        NullPercent=col.NullPercent,
+                        StatisticsInfo=col.StatisticsInfo,
+                        GroupingTags=dataColumnTags                   
+                    });;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation("更新分析数据失败:" + ex.ToString());
+                throw ex;
+            }
+            return result;
+        }
         public List<object> GenerateColumnStatistics(System.Data.DataTable dt, Model.RdDataColumn column, int dataCount, out int kindCount, out List<RdGroupingTag> tagsRemoved, out int nullCount)
         {
             int continuesBaseCount = 9; //多少数值算连续变量
@@ -469,6 +522,55 @@ namespace KYTJ.Data.Handler
             kindCount = isNum && valCountDict.Keys.Count > continuesBaseCount ? 0 : valCountDict.Keys.Count();
             return colStatis;
         }
+
+        public bool ConvertTypeToSqlDbType(Type type, int count, DataTable dt, string columnName, int value)
+        {
+            bool columnExist = false;
+            int dCo = 0;
+            switch (type.Name)
+            {
+                case "String":
+                    List<string> list = (from d in dt.AsEnumerable() select d.Field<string>($"{columnName}")).ToList();
+                    dCo = list.GroupBy(c => c).Count();
+                    columnExist = (float)dCo / count >= (float)value / 100;
+                    break;
+                case "Int32":
+                    List<int?> listIn = (from d in dt.AsEnumerable() select d.Field<int?>($"{columnName}")).ToList();
+                    dCo = listIn.GroupBy(c => c).Count();
+                    columnExist = (float)dCo / count >= (float)value / 100;
+                    break;
+                case "Int16":
+                    List<Int16?> listSm = (from d in dt.AsEnumerable() select d.Field<Int16?>($"{columnName}")).ToList();
+                    dCo = listSm.GroupBy(c => c).Count();
+                    columnExist = (float)dCo / count >= (float)value / 100;
+                    break;
+                case "Int64":
+                    List<Int64?> listBig = (from d in dt.AsEnumerable() select d.Field<Int64?>($"{columnName}")).ToList();
+                    dCo = listBig.GroupBy(c => c).Count();
+                    columnExist = (float)dCo / count >= (float)value / 100;
+                    break;
+                case "DateTime":
+                    List<DateTime?> listdt = (from d in dt.AsEnumerable() select d.Field<DateTime?>($"{columnName}")).ToList();
+                    dCo = listdt.GroupBy(c => c).Count();
+                    columnExist = (float)dCo / count >= (float)value / 100;
+
+                    break;
+                case "Decimal":
+                    List<decimal?> listde = (from d in dt.AsEnumerable() select d.Field<decimal?>($"{columnName}")).ToList();
+                    dCo = listde.GroupBy(c => c).Count();
+                    columnExist = (float)dCo / count >= (float)value / 100;
+                    break;
+                case "Double":
+                    List<double?> listflo = (from d in dt.AsEnumerable() select d.Field<double?>($"{columnName}")).ToList();
+                    dCo = listflo.GroupBy(c => c).Count();
+                    columnExist = (float)dCo / count >= (float)value / 100;
+                    break;
+                default:
+                    break;
+            }
+            return columnExist;
+        }
+
 
     }
 }

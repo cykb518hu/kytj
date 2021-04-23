@@ -28,14 +28,14 @@ export function uuid() {
     return Math.random().toString(36).substr(3, 10)
 }
 
-export function  getDataFlowResult(currentNodeId,prevNodeId){
+export function  getDataFlowResult(currentNodeId,prevNodeId,caculateInfo=false){
 
   var param = {};
   param.node = currentNodeId;
   param.prevNode = prevNodeId;
 
   var oReq = new XMLHttpRequest();
-  oReq.open("GET", "http://localhost:13066/dataFlow/GetDataFlowCache?node="+currentNodeId+"&prevNode="+prevNodeId, false); // 同步请求
+  oReq.open("GET", "http://localhost:13066/dataFlow/GetDataFlowCache?node="+currentNodeId+"&prevNode="+prevNodeId+"&caculateInfo="+caculateInfo, false); // 同步请求
   oReq.setRequestHeader("Content-type", "application/json");
   oReq.send();
 

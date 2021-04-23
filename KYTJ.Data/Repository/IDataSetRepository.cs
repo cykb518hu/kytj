@@ -14,29 +14,30 @@ namespace KYTJ.Data.Repository
 {
     public interface IDataSetRepository
     {
-        public List<SearchEngineDataModel> SearchEngineDataList( string userName, string dataName, int pageIndex, int pageSize, ref int totalCount);
+        List<SearchEngineDataModel> SearchEngineDataList( string userName, string dataName, int pageIndex, int pageSize, ref int totalCount);
 
-        public void ExtractEngineData(int exportDataId, int projectId, string userName);
+        void ExtractEngineData(int exportDataId, int projectId, string userName);
 
-        public List<DataSetModel> SearchDataSetList(string dataSetName, string userName, int pageIndex,int pageSize,ref int totalCount);
+        List<DataSetModel> SearchDataSetList(string dataSetName, string userName, int pageIndex,int pageSize,ref int totalCount);
 
         bool DeleteDataSet(int dataSetId);
-        bool EditDataSet(DataSetModel data);
-        public void AddRdDataColumns();
+        bool UpdateDataSet(DataSetModel data);
+ 
 
-        public List<DataSetModel> GetDataSetAndSub(int projectId);
+        List<DataSetModel> GetDataSetAndSub(int projectId);
 
-        DataSetModel GetDataSet(int dataSetId);
+        DataSetModel GetDataSetById(int id);
 
     }
 
     public class DataSetRepository : KytjDbContext, IDataSetRepository
     {
         private readonly ILogger<DataSetRepository> _logger;
-        public DataSetRepository(ILogger<DataSetRepository> logger)
+        private readonly ILogger<LegacyCodeHandler> _extractEngineDataHandlerlogger;
+        public DataSetRepository(ILogger<DataSetRepository> logger, ILogger<LegacyCodeHandler> extractEngineDataHandlerlogger)
         {
             _logger = logger;
-            
+            _extractEngineDataHandlerlogger = extractEngineDataHandlerlogger;
         }
 
         public List<SearchEngineDataModel> SearchEngineDataList(string userName,string dataName, int pageIndex, int pageSize, ref int totalCount)
@@ -79,7 +80,7 @@ namespace KYTJ.Data.Repository
                 DataTable dtSource = _dbMySql.Ado.GetDataTable(extractDataListSql);
 
                 _logger.LogInformation("开始数据表格式处理");
-                ExtractEngineDataHandler extractEngineDataHandler = new ExtractEngineDataHandler(_logger);
+                LegacyCodeHandler extractEngineDataHandler = new LegacyCodeHandler(_extractEngineDataHandlerlogger);
                 //数据转成表格
                 DataTable dtFormat = extractEngineDataHandler.ConvertToStandardTable(dtSource, engineData.DataType);
                 dtFormat.TableName = tableName;
@@ -149,7 +150,7 @@ namespace KYTJ.Data.Repository
             return result;
         }
 
-        public bool EditDataSet(DataSetModel data)
+        public bool UpdateDataSet(DataSetModel data)
         {
             var result = false;
             try
@@ -181,13 +182,13 @@ namespace KYTJ.Data.Repository
             return resultsTask;
         }
 
-        public DataSetModel GetDataSet(int dataSetId)
+        public DataSetModel GetDataSetById(int id)
         {
             var resultsTask = new DataSetModel();
             try
             {
                 var query = _dbKyStatic.Queryable<DataSetModel>();
-                resultsTask = query.Where(x => x.DataSetId == dataSetId)
+                resultsTask = query.Where(x => x.DataSetId == id)
                     .ToList().FirstOrDefault();
             }
             catch (Exception ex)
@@ -197,41 +198,5 @@ namespace KYTJ.Data.Repository
             return resultsTask;
         }
 
-
-
-        public void AddRdDataColumns()
-        {
-                   var list = new List<RdDataColumn>();
-            var cols = new RdDataColumn();
-            cols.Name = "test";
-            cols.Rem = "testrem";
-            cols.StatisticsInfo = "[]";
-            cols.KindCount = 1;
-            cols.ResultDataId = 1178;
-            cols.IsGrouping = true;
-
-            cols.GroupingTags = new List<RdGroupingTag>();
-            cols.GroupingTags.Add(new RdGroupingTag { Name = "1", Index = "1" });
-            cols.GroupingTags.Add(new RdGroupingTag { Name = "2", Index = "2" });
-
-     
-            list.Add(cols);
-
-            var cols2 = new RdDataColumn();
-            cols2.Name = "test2";
-            cols2.Rem = "testrem2";
-            cols2.StatisticsInfo = "[]";
-            cols2.KindCount = 1;
-            cols2.ResultDataId = 1178;
-            cols2.IsGrouping = true;
-            cols2.GroupingTags = null;
-            list.Add(cols2);
-            //_dbKyStatic.Insertable(list)
-
-
-            _dbKyStatic.Insertable(list).AddSubList(x => x.GroupingTags.First().DataColumnId)
-                .ExecuteReturnPrimaryKey();
-
-        }
     }
 }

@@ -18,11 +18,11 @@ namespace KYTJ.Data.Repository
         
         public List<RdDataColumn> SearchRdColumnList(int resultDataId, int pageIndex, int pageSize, ref int totalCount);
         public bool UpdateRdColumnName(RdDataColumn rdData);
-        public bool CopyResultData(int resultDataId);
-        public bool UpdateResultDataName(int resultDataId, string Name);
-        List<ResultData> GetRdDataAndSub(int resultDataId);
+        public bool CopyRd(int resultDataId);
+        public bool UpdateRdName(int resultDataId, string Name);
+        List<ResultData> GetRdAndSub(int resultDataId);
 
-        DataTable GetOriginalTable(string tableName);
+        DataTable GetOriginalDataFromMySql(string tableName);
         List<StatisticsMethodModel> GetStatisticsMethod();
 
         List<DictionaryDTO> GetDictionaryDTOs(string type);
@@ -70,7 +70,7 @@ namespace KYTJ.Data.Repository
 
 
 
-        public bool CopyResultData(int resultDataId)
+        public bool CopyRd(int resultDataId)
         {
             var result = true;
             try
@@ -111,7 +111,7 @@ namespace KYTJ.Data.Repository
             return result;
         }
 
-        public bool UpdateResultDataName(int resultDataId,string name)
+        public bool UpdateRdName(int resultDataId,string name)
         {
             var result = false;
             try
@@ -122,12 +122,12 @@ namespace KYTJ.Data.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError("UpdateResultDataName失败：" + ex.ToString());
+                _logger.LogError("UpdateRdName失败：" + ex.ToString());
             }
             return result;
         }
 
-        public List<ResultData> GetRdDataAndSub(int resultDataId)
+        public List<ResultData> GetRdAndSub(int resultDataId)
         {
             var list = _dbKyStatic.Queryable<ResultData>().Mapper(it => it.DataColumns, it => it.DataColumns.First().ResultDataId)
                 .Mapper((s, cache) =>
@@ -142,7 +142,7 @@ namespace KYTJ.Data.Repository
             return list;
         }
 
-        public DataTable GetOriginalTable(string tableName)
+        public DataTable GetOriginalDataFromMySql(string tableName)
         {
             var dt = new DataTable();
             try

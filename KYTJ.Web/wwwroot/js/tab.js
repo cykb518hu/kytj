@@ -97,8 +97,8 @@ layui.define(['element', 'common'], function (exports) {
         var postPath = window.document.location.pathname;
         if (postPath == "/") postPath = "";
         //首页对应项目菜单，替换iframe，其他添加iframe
-        if (data.href == postPath+"/Home/HomeNew") {
-            $("#homeFram").attr("src", postPath +"/Home/HomeNew");
+        if (data.href == postPath +"/Project/Index") {
+            $("#homeFram").attr("src", postPath +"/Project/Index");
             $(".layui-tab-title li:first").trigger("click");
             return;
         }
