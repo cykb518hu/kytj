@@ -1,0 +1,113 @@
+﻿
+@{
+    ViewBag.Title = "ActionLog";
+    Layout = "~/Views/Shared/_TableLayout.cshtml";
+}
+
+<div id="mainArea">
+    <el-col :span="24" >
+
+                <el-row :gutter="10">
+                    <el-col :span="8">
+                        <div>
+                            <template>
+                                <el-date-picker v-model="logDateRange"
+                                                type="daterange"
+                                                range-separator="至"
+                                                start-placeholder="开始日期"
+                                                end-placeholder="结束日期">
+                                </el-date-picker>
+                            </template>
+                        </div>
+                    </el-col>
+                    <el-col :span="4">
+                        <el-button v-on:click="onSearch" type="primary">搜索</el-button>
+                    </el-col>
+                    <el-col :span="12" class="text-right">
+
+                    </el-col>
+                </el-row>
+
+                <div style="margin-top:10px">
+                    <el-table v-bind:data="logList"
+                              v-loading="loading"
+                              style="width: 100%">
+                        <el-table-column prop="projectName"
+                                         label="项目名"  min-width="20%">
+                        </el-table-column>
+                        <el-table-column prop="sourceName"
+                                         label="数据源"  min-width="20%">
+                        </el-table-column>
+
+                        <el-table-column prop="action"
+                                         label="操作"  min-width="20%">
+                        </el-table-column>
+                        <el-table-column prop="account"
+                                         label="操作人"  min-width="10%">
+                        </el-table-column>
+                        <el-table-column prop="dtDate"
+                                         label="操作时间"  min-width="15%">
+                        </el-table-column>
+
+                        <el-table-column prop="clientIp"
+                                         label="Ip地址"  min-width="15%">
+                        </el-table-column>
+                    </el-table>
+                    <el-pagination background style="float:right;"
+                                   layout="total, prev, pager, next"
+                                   v-on:current-change="searchOperationLogList"
+                                   v-bind:total="total"
+                                   v-bind:current-page.sync="pageIndex">
+                    </el-pagination>
+                </div>
+    </el-col>
+</div>
+<script>
+    var main = new Vue({
+        'el': '#mainArea',
+        data: function () {
+            return {
+                logList: [],
+                total: 0,
+                pageIndex: 1,
+                loading: false,
+                logDateRange: ""
+            };
+        },
+        methods: {
+            onSearch: function () {
+                this.pageIndex = 1;
+                this.searchOperationLogList();
+            },
+            searchOperationLogList: function () {
+                var param = {};
+                param.pageIndex = this.pageIndex;
+                param.pageSize = 10;
+                param.logDateRange = this.logDateRange;
+                this.loading = true;
+                var that = this;
+                $.ajax({
+                    url: "/Log/SearchLogList",
+                    type: "GET",
+                    data: param,
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data && data.success) {
+                            that.logList = data.data;
+                            that.total = data.total;
+                        }
+                        else {
+                            console.log(data.msg);
+                        }
+                        that.loading = false;
+                    }
+                });
+            }
+        },
+        mounted: function () {
+            this.onSearch();
+        }
+    });
+
+</script>
+
