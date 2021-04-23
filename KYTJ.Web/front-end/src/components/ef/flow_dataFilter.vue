@@ -1,14 +1,6 @@
 
-<style>
-
-
-  .el-dialog__body{
-    padding: 10px 20px !important;
-  }
-
-</style>
 <template>
-  <el-dialog :visible.sync="dialogVisible" width="80%" title="过滤" top="5vh">
+  <el-dialog :visible.sync="dialogVisible" width="80%" title="过滤" top="5vh" :close-on-click-modal="false" >
     <div>
       <div>
         <el-row>
@@ -24,18 +16,17 @@
               预期: <el-input v-model="filterPercent"
                           placeholder="20" style="width:80px"></el-input>&nbsp;%
           </el-col>
-          <el-col :span="4">
+          <el-col :span="12">
             <el-button plain @click="onSearch" type="primary">筛选</el-button>
-            <el-button plain @click="onReset" type="primary">重置</el-button>
+
+            <el-button @click="onDelete" type="primary" >删除选中字段</el-button>
             </el-col>
-          <el-col :span="8">
-            <el-button @click="onDelete" type="primary" style="float:right">删除选中字段</el-button>
-          </el-col>
+
         </el-row>
       </div>
       <div style="margin-top:20px">
 
-<div style="float:right"> &nbsp;&nbsp;总记录:{{dataColumns.length}}/选中数据:{{multipleSelection.length}} </div>
+<div style="float:right"> &nbsp;&nbsp;总记录:{{dataColumns.length}}/选中列:{{multipleSelection.length}} </div>
             <el-table
             ref="multipleTable"
       :data="dataColumns"

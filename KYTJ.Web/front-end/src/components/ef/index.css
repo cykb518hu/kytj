@@ -110,7 +110,7 @@
 /*节点显示的文字*/
 .ef-node-text {
     color: #565758;
-    font-size: 12px;
+    font-size: 14px;
     line-height: 32px;
     margin-left: 8px;
     width: 100px;
@@ -226,4 +226,29 @@
 
 .flow-menu{
   float:left;
+}
+
+.el-dialog__header{
+  padding: 10px !important;
+}
+.el-dialog__title{
+  font-size: 16px !important;
+
+}
+.el-dialog__headerbtn{
+  top:10px !important;
+}
+.el-dialog__body
+{
+  padding: 10px !important;
+}
+.el-message-box__header{
+  padding: 10px !important;
+}
+.el-message-box__title{
+  font-size: 16px !important;
+
+}
+.el-table__header{
+  font-size: 14px !important;
 }

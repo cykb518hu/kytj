@@ -1,15 +1,7 @@
 
-<style>
-
-
-  .el-dialog__body{
-    padding: 0px 20px !important;
-  }
-
-</style>
 <template>
-  <el-dialog :visible.sync="dialogVisible" width="70%" title="样本抽样" top="5vh">
-        <el-tabs v-model="activeName"  style="height:500px;">
+  <el-dialog :visible.sync="dialogVisible" width="60%" title="样本抽样" top="5vh" :close-on-click-modal="false">
+        <el-tabs v-model="activeName" >
           <el-tab-pane label="简单" name="simple">
 
                     <el-form label-width="120px" style="width:400px">
@@ -134,6 +126,14 @@ export default {
 
     },
     simpleClick(){
+        if(this.simpleObj.method === ""){
+          this.$message.warning("请选择抽样方式");
+             return;
+        }
+        if(this.simpleObj.simVal === ""){
+            this.$message.warning("请选择抽样数量");
+              return;
+        }
       var param={};
           param.node = this.nodeId;
           param.simObj=this.simpleObj;

@@ -411,7 +411,7 @@
              * @param nodeId 被删除节点的ID
              */
             deleteNode(nodeId) {
-                this.$confirm('确定要删除节点' + nodeId + '?', '提示', {
+                this.$confirm('确定要删除当前节点', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     type: 'warning',
@@ -447,8 +447,23 @@
                         if (node.id === nodeId) {
                            nodeType=node.type;
                         }
+                    };
+                    if(nodeType!="dataSource"){
+                      var prevNodeId="";
+                       var currentNodeId= this.activeElement.nodeId;
+                      for (var i = 0; i < this.data.lineList.length; i++) {
+                          let line = this.data.lineList[i]
+                          if (line.to === currentNodeId) {
+                              prevNodeId=line.from;
+                          }
+                      }
+                      if(prevNodeId===""){
+                        this.$message.warning("必须有前置节点");
+                        return;
+                      }
+
                     }
-                nodeId="test";
+
                 switch(nodeType){
                   case "dataSource":
                     this.flowDataSourceVisible = true;
@@ -458,52 +473,61 @@
                      break;
 
                    case "dataPreview":
-                     this.flowDataPreviewVisible = true;
                      var cache=this.getDataFlowCache(true);
+                     this.flowDataPreviewVisible = true;
                      this.$nextTick(function () {
                           this.$refs.flowDataPreview.init(cache)
                        });
                        break;
                    case "dataFilter":
-                     this.flowDataFilterVisible = true;
+
                      var cache=this.getDataFlowCache();
+                     this.flowDataFilterVisible = true;
                      this.$nextTick(function () {
                           this.$refs.flowDataFilter.init(nodeId,cache)
 
                        });
                        break;
                     case "dataCalculate":
-                     this.flowDataCalculateVisible = true;
                      var cache=this.getDataFlowCache();
+                     this.flowDataCalculateVisible = true;
                      this.$nextTick(function () {
                           this.$refs.flowDataCalculate.init(nodeId,cache)
                        });
                        break;
                     case "dataRow":
-                     this.flowDataRowVisible = true;
+
                      var cache=this.getDataFlowCache();
+                     this.flowDataRowVisible = true;
                      this.$nextTick(function () {
                           this.$refs.flowDataRow.init(nodeId,cache)
                        });
                        break;
                     case "dataColumn":
-                     this.flowDataColumnVisible = true;
+
                      var cache=this.getDataFlowCache();
+                     this.flowDataColumnVisible = true;
                      this.$nextTick(function () {
                           this.$refs.flowDataColumn.init(nodeId,cache)
                        });
                        break;
                     case "dataSample":
-                     this.flowDataSampleVisible = true;
+
                      var cache=this.getDataFlowCache();
+                     this.flowDataSampleVisible = true;
                      this.$nextTick(function () {
                           this.$refs.flowDataSample.init(nodeId,cache)
-                          //this.$refs.flowDataCalculate.test()
                        });
                        break;
                     case "dataCombine":
-                     this.flowDataCombineVisible = true;
+
                      var prevNodeIds=this.getPrevNodeIds();
+                      if (prevNodeIds.length!=2) {
+                           this.$message.warning("数据整合必须有两个前置节点");
+                           return;
+
+                        }
+                     this.flowDataCombineVisible = true;
                      this.$nextTick(function () {
                           this.$refs.flowDataCombine.init(nodeId,prevNodeIds)
                        });
@@ -589,8 +613,8 @@
             },
 
             getDataFlowCache(caculateInfo=false){
-                var currentNodeId= "test";//this.activeElement.nodeId;
-                var prevNodeId;
+                var currentNodeId= this.activeElement.nodeId;
+                var prevNodeId="";
                 for (var i = 0; i < this.data.lineList.length; i++) {
                     let line = this.data.lineList[i]
                     if (line.to === currentNodeId) {
@@ -609,19 +633,15 @@
             },
             getPrevNodeIds(){
                 var prevNodeIds=[];
+                var currentNodeId= this.activeElement.nodeId;
                 for (var i = 0; i < this.data.lineList.length; i++) {
                     let line = this.data.lineList[i]
                     if (line.to === currentNodeId) {
                         prevNodeIds.push(line.from)
                     }
                 }
-                if (prevNodeIds.length=2) {
-                   return prevNodeIds;
+                return prevNodeIds;
 
-                 } else {
-                      this.$message.warning("数据整合必须有两个数据源");
-                      console.log(res.msg);
-                }
 
             }
 

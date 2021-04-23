@@ -35,7 +35,8 @@ export function  getDataFlowResult(currentNodeId,prevNodeId,caculateInfo=false){
   param.prevNode = prevNodeId;
 
   var oReq = new XMLHttpRequest();
-  oReq.open("GET", "http://localhost:13066/dataFlow/GetDataFlowCache?node="+currentNodeId+"&prevNode="+prevNodeId+"&caculateInfo="+caculateInfo, false); // 同步请求
+  var url=config.apiUrl+"dataFlow/GetDataFlowCache?node="+currentNodeId+"&prevNode="+prevNodeId+"&caculateInfo="+caculateInfo;
+  oReq.open("GET", url, false); // 同步请求
   oReq.setRequestHeader("Content-type", "application/json");
   oReq.send();
 

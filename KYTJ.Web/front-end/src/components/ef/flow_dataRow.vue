@@ -1,24 +1,20 @@
 
-<style>
-
-
-  .el-dialog__body{
-    padding: 10px 20px !important;
-  }
-
-</style>
 <template>
-  <el-dialog :visible.sync="dialogVisible" width="60%" title="行处理" top="5vh"  >
+  <el-dialog :visible.sync="dialogVisible" width="60%" title="行处理" top="5vh" :close-on-click-modal="false" >
     <div style="height:400px">
       <div>
         <el-row>
           <el-col :span="16">
              总记录条数:{{dataCount}}
+
+&nbsp;
+            <el-button plain @click="onAddFilter" type="primary" >添加筛选条件</el-button>
+            &nbsp;
+            <el-button @click="onExecute" type="primary" >执行操作</el-button>
           </el-col>
 
           <el-col :span="8">
-            <el-button plain @click="onAddFilter" type="primary" >添加筛选条件</el-button>
-            <el-button @click="onExecute" type="primary" style="float:right">执行操作</el-button>
+
           </el-col>
         </el-row>
       </div>
@@ -133,12 +129,15 @@ export default {
           for(let i=0;i<this.filterColumns.length;i++){
             if(this.filterColumns[i].column===""){
               this.$message.warning("筛选列名不能为空");
+              return;
             };
             if(this.filterColumns[i].condition===""){
               this.$message.warning("筛选条件不能为空");
+              return;
             };
             if(this.filterColumns[i].value===""){
               this.$message.warning("筛选值不能为空");
+              return;
             }
           }
           var param={};

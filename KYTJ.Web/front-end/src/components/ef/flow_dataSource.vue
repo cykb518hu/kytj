@@ -1,7 +1,7 @@
 <template>
-  <el-dialog :visible.sync="dialogVisible" width="50%" title="选择数据" >
+  <el-dialog :visible.sync="dialogVisible" width="50%" title="选择数据" :close-on-click-modal="false">
     <el-form :model="dataForm" label-width="120px">
-      <el-form-item label="选择数据集">
+      <el-form-item label="选择数据集合">
         <el-select
           v-model="dataForm.dataSetId"
           placeholder="请选择"
@@ -17,7 +17,7 @@
           </el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="选择数据">
+      <el-form-item label="选择数据集">
         <el-select
           v-model="dataForm.resultDataId"
           placeholder="请选择"
@@ -149,6 +149,14 @@ export default {
         .catch(() => {});
     },
     setDataSource(){
+      if(this.dataForm.dataSetId === ""){
+          this.$message.warning("请选择数据集合");
+             return;
+      }
+      if(this.dataForm.resultDataId === ""){
+          this.$message.warning("请选择数据集");
+             return;
+      }
         var param = {};
         param.resultDataId = this.dataForm.resultDataId;
         param.node = this.nodeId;

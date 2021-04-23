@@ -9,7 +9,7 @@ import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import '@/components/ef/index.css'
 import axios from "axios"
-axios.defaults.baseURL="http://localhost:13066/";
+axios.defaults.baseURL= config.apiUrl;// "http://localhost:13066/";
 Vue.prototype.$axios=axios;
 
 const echarts = require('echarts')

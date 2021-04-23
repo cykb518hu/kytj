@@ -1,15 +1,7 @@
 
-<style>
-
-
-  .el-dialog__body{
-    padding: 0px 20px !important;
-  }
-
-</style>
 <template>
-  <el-dialog :visible.sync="dialogVisible" width="70%" title="数据整合" top="5vh">
-        <el-tabs v-model="activeName"  style="height:500px;">
+  <el-dialog :visible.sync="dialogVisible" width="70%" title="数据整合" top="5vh" :close-on-click-modal="false">
+        <el-tabs v-model="activeName" >
           <el-tab-pane label="追加" name="append">
              <div>
                 <el-row>
@@ -19,10 +11,14 @@
                                   <el-radio label="mainData">仅主数据集</el-radio>
                                   <el-radio label="alldata">所有数据集</el-radio>
                                 </el-radio-group>
+
+                                &nbsp;
+                                &nbsp;
+                                  <el-button @click="appendClick" type="primary" >执行</el-button>
                   </el-col>
 
                   <el-col :span="8">
-                     <el-button @click="appendClick" type="primary" >执行</el-button>
+
                   </el-col>
                 </el-row>
               </div>
@@ -133,13 +129,11 @@ export default {
       this.activeName="append";
       this.nodeId=nodeId;//nodeId;
       this.dialogVisible = true;
-      //this.prevNodeIds=prevNodeIds;
+      this.prevNodeIds=prevNodeIds;
       this.loadAllData();
 
     },
     loadAllData(){
-      this.prevNodeIds.push("test");
-      this.prevNodeIds.push("test");
       var param={};
           param.prevNodeIds=this.prevNodeIds;
           this.$axios

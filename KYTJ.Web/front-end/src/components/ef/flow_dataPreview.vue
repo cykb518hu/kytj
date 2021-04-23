@@ -5,20 +5,16 @@
     border-radius: 4px;
     min-height: 36px;
   }
-  .el-dialog__body{
-    padding: 10px 20px !important;
-  }
-
 </style>
 <template>
-  <el-dialog :visible.sync="dialogVisible" width="80%" title="数据预览" top="5vh">
+  <el-dialog :visible.sync="dialogVisible"  v-if="dialogVisible" width="80%" title="数据预览" top="5vh" :close-on-click-modal="false" >
     <el-row :gutter="20">
       <el-col :span="12">
         <div class="grid-content">
          <el-table
       :data="dataFlowCache.dataColumns"
       stripe
-      max-height="500"
+      :max-height="tableConfig.leftTableHeight"
       style="width: 100%">
       <el-table-column
         prop="name"
@@ -120,7 +116,7 @@
 
           </div>
           <div style="margin-top:20px">
-            <div id="myChart" :style="{width: '100%', height: '300px'}" ></div>
+            <div id="myChart" :style="{width: '100%', height:tableConfig.divHeight+'px'}" ></div>
           </div>
 
         </div></el-col>
@@ -129,7 +125,6 @@
 </template>
 
 <script>
-import qs from "qs";
 
 export default {
 
@@ -138,7 +133,12 @@ export default {
 
       dialogVisible: false,
       dataFlowCache:[],
-      selectedRow:[]
+      selectedRow:[],
+      tableConfig:{
+        leftTableHeight:window.innerHeight-200,
+        divHeight:window.innerHeight-350,
+
+      }
 
     };
   },
@@ -147,7 +147,16 @@ export default {
     init(cache) {
       this.dialogVisible = true;
       this.dataFlowCache=cache;
+      this.selectedRow=[];
+      this.tableConfig.leftTableHeight=window.innerHeight-200;
+      this.tableConfig.divHeight=window.innerHeight-350;
 
+    },
+    created () {
+      window.addEventListener('resize', this.getHeight)
+    },
+  destroyed () {
+      window.removeEventListener('resize', this.getHeight)
     },
         isContinuousFormatter(row, column) {
                 if (row.isContinuous) {
@@ -162,64 +171,67 @@ export default {
           this.drawBar();
 
         },
+        getHeight () {
+          this.tableConfig.leftTableHeight = window.innerHeight - 159
+        },
         drawBar(){
-        // 基于准备好的dom，初始化echarts实例
-        let myChart = this.$echarts.init(document.getElementById('myChart'))
-        let xAxisData=[];
-        let seriesData=[];
-        let rotate=0;
-        if(this.selectedRow.isContinuous){
-          //借用nullPercent 字段
-          let colStatis=JSON.parse(this.selectedRow.nullPercent);
-          colStatis.map((item)=> {
-              xAxisData.push(item.value);
-              seriesData.push(item.count)
+            // 基于准备好的dom，初始化echarts实例
+            let myChart = this.$echarts.init(document.getElementById('myChart'))
+            let xAxisData=[];
+            let seriesData=[];
+            let rotate=0;
+            if(this.selectedRow.isContinuous){
+              //借用nullPercent 字段
+              let colStatis=JSON.parse(this.selectedRow.nullPercent);
+              colStatis.map((item)=> {
+                  xAxisData.push(item.value);
+                  seriesData.push(item.count)
+                  })
+
+            }
+            else{
+                //分类直接获取数据
+                this.selectedRow.info.map((item)=> {
+                  xAxisData.push(item.value);
+                  seriesData.push(item.count)
               })
 
-        }
-        else{
-             //分类直接获取数据
-             this.selectedRow.info.map((item)=> {
-              xAxisData.push(item.value);
-              seriesData.push(item.count)
-          })
+            }
+            if(xAxisData.length>4){
+                rotate=45;
+            }
 
-        }
-        if(xAxisData.length>4){
-            rotate=45;
-        }
+            myChart.setOption({
+                title: {
+                  text: '数据分布图' ,
+                  x:'center',
+                  y:'top',
+                  textAlign:'center'
+                },
+                tooltip: {},
+                xAxis: {
+                    type: 'category',
+                    data: xAxisData,
+                    axisLabel: {
+                        interval: 0,
+                        rotate: rotate,
+                        //倾斜度 -90 至 90 默认为0
+                        margin: 5
+                    }
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                grid:{
+                  top:40					//---相对位置，top\bottom\left\right
+                },
+                series: [{
+                    data: seriesData,
+                    type: 'bar'
 
-        myChart.setOption({
-            title: {
-              text: '数据分布图' ,
-              x:'center',
-              y:'top',
-              textAlign:'center'
-            },
-            tooltip: {},
-            xAxis: {
-                type: 'category',
-                data: xAxisData,
-                axisLabel: {
-                    interval: 0,
-                    rotate: rotate,
-                    //倾斜度 -90 至 90 默认为0  
-                    margin: 5
-                }
-            },
-            yAxis: {
-                type: 'value'
-            },
-            grid:{
-            	top:40					//---相对位置，top\bottom\left\right
-            },
-            series: [{
-                data: seriesData,
-                type: 'bar'
-
-            }]
-        });
-    }
+                }]
+            });
+        }
 
   }
 };

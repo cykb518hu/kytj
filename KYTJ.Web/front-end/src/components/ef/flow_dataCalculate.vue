@@ -1,10 +1,6 @@
 
 <style>
 
-
-  .el-dialog__body{
-    padding: 0px 20px !important;
-  }
     .framePage {
             width: 100%;
             border: none;
@@ -13,7 +9,7 @@
 
 </style>
 <template>
-  <el-dialog :visible.sync="dialogVisible" width="70%" title="统计页" top="5vh">
+  <el-dialog :visible.sync="dialogVisible" width="70%" title="统计分析" top="5vh" :close-on-click-modal="false" >
         <el-tabs v-model="activeName"  style="height:500px;">
           <el-tab-pane label="统计方法" name="method">
               <el-row :gutter="20">

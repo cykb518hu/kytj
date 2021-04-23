@@ -1,12 +1,4 @@
 
-<style>
-
-
-  .el-dialog__body{
-    padding: 10px 20px !important;
-  }
-
-</style>
 <template>
   <el-dialog :visible.sync="dialogVisible" width="60%" title="列处理" top="5vh"  >
     <div style="height:400px">

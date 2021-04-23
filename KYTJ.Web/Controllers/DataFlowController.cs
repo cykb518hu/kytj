@@ -241,7 +241,7 @@ namespace KYTJ.Web.Controllers
                 if (mainData == null|| secondData == null)
                 {
                     result = false;
-                    msg = "某数据源没有数据";
+                    msg = "某前置节点没有数据";
                 }
                 else
                 {
