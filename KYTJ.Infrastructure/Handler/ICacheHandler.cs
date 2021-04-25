@@ -1,7 +1,11 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using KYTJ.Infrastructure.Model;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
 namespace KYTJ.Infrastructure.Handler
@@ -39,7 +43,8 @@ namespace KYTJ.Infrastructure.Handler
 
         public void Set<T>(string key, T data)
         {
-            _cache.Set(key, data);
+            TimeSpan ts = new TimeSpan(0, GlobalSetting.CacheExpire, 0);   
+            _cache.Set(key, data, ts);
         }
     }
 }

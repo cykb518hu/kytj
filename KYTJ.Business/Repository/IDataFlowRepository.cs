@@ -59,27 +59,30 @@ namespace KYTJ.Business.Repository
             if (data == null && !string.IsNullOrEmpty(prevNode))
             {
                 data = _cacheHandler.Get<DataFlowCacheModel>(prevNode);
-                SetDataFlowCache(data, node);
+                var obj = data.Clone();
+                SetDataFlowCache(obj, node);
             }
-            //result.DataColumns = data.DataColumns;
-            //result.DataCount = data.DataCount;
-            //result.DataSetInfo = data.DataSetInfo;
-            //result.Id = data.Id;
-            //result.Name = data.Name;
-            //result.ProjectInfo = data.ProjectInfo;
-            //result.TableName = data.TableName;
-            //result.WdName = data.WdName;
             return data;
         }
-        public void SetDataFlowCache(int resultDataId,string node)
+        public void SetDataFlowCache(int resultDataId, string node)
         {
+
             var data = GetDataFlowCacheFromDb(resultDataId);
-            _cacheHandler.Set(node, data);
+            SetDataFlowCache(data, node);
         }
 
         public void SetDataFlowCache(DataFlowCacheModel data,string node)
         {
-            _cacheHandler.Set(node, data);
+            try
+            {
+                _cacheHandler.Set(node, data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("SetDataFlowCache失败：" + ex.ToString());
+                throw ex;
+            }
+           
         }
         public DataFlowCacheModel GetDataFlowCacheFromDb(int resultDataId)
         {

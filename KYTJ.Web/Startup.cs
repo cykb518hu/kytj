@@ -53,6 +53,7 @@ namespace KYTJ.Web
             GlobalSetting.RScriptRunnerPath = Configuration.GetValue<string>("GlobalSetting:RScriptRunnerPath");
             GlobalSetting.RScriptAcount = Configuration.GetValue<string>("GlobalSetting:RScriptAcount");
             GlobalSetting.Title = Configuration.GetValue<string>("GlobalSetting:Title");
+            GlobalSetting.CacheExpire = Configuration.GetValue<int>("GlobalSetting:CacheExpire");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
