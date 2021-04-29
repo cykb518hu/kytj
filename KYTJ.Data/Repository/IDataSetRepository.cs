@@ -27,6 +27,7 @@ namespace KYTJ.Data.Repository
         List<DataSetModel> GetDataSetAndSub(int projectId);
 
         DataSetModel GetDataSetById(int id);
+        int ExtractEngineDataForService(string projectTypeStr, string projectName, string userName, DataTable dtFormat);
 
     }
 
@@ -102,7 +103,47 @@ namespace KYTJ.Data.Repository
                 _logger.LogError("搜索引擎数据导入到sql server失败：" + ex.ToString());
                 DeleteDataSet(extractDataSetMappingModel.DataSetId);
             }
-        } 
+        }
+
+        public int ExtractEngineDataForService(string projectTypeStr, string projectName, string userName, DataTable dtFormat)
+        {
+            var extractDataSetMappingModel = new ExtractDataSetMappingModel();
+            try
+            {
+                _logger.LogInformation($"projectTypeStr:{projectTypeStr},projectName:{projectName},userName:{userName}");
+                string tableName = Guid.NewGuid().ToString("N");
+                string datasetName = projectName + "_" + DateTime.Now.ToString("yyyyMMddhhmmssfff");
+
+                _logger.LogInformation("开始在sql server创建mapping关系");
+                //ms sql server 创建dataset table_config的mapping关系
+                var createMappingSql = GetSqlText("ExtractEngineData-CreateMappingForService.sql");
+                extractDataSetMappingModel = _dbKyStatic.Ado.SqlQuerySingle<ExtractDataSetMappingModel>(createMappingSql, new List<SugarParameter>(){
+                   new SugarParameter("@projectTypeStr",projectTypeStr),
+                   new SugarParameter("@projectName",projectName),
+                   new SugarParameter("@userName",userName),
+                   new SugarParameter("@tableName",tableName),
+                   new SugarParameter("@datasetName",datasetName),
+                   new SugarParameter("@dataCount",dtFormat.Rows.Count)
+                });
+                _logger.LogInformation("开始导入数据");
+
+                LegacyCodeHandler extractEngineDataHandler = new LegacyCodeHandler(_extractEngineDataHandlerlogger);
+                //创建数据表 将所有列插入到data_field 表
+                dtFormat.TableName = tableName;
+                extractEngineDataHandler.CreateSchemaAndExportData(extractDataSetMappingModel, dtFormat);
+                _logger.LogInformation($"抽取结束datasetId:{extractDataSetMappingModel.DataSetId},tableId:{extractDataSetMappingModel.TableId}");
+
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("接口导入到sql server失败：" + ex.ToString());
+                DeleteDataSet(extractDataSetMappingModel.DataSetId);
+                extractDataSetMappingModel.DataSetId = 0;
+            }
+            return extractDataSetMappingModel.DataSetId;
+        }
+
 
 
         public List<DataSetModel> SearchDataSetList(string dataSetName, string userName,int pageIndex , int pageSize, ref int totalCount)
@@ -132,15 +173,18 @@ namespace KYTJ.Data.Repository
             {
                 //有问题，需要用DF_TableConfig 数据来删除，
                 var dbNameList = _dbKyStatic.Ado.SqlQuery<string>("select TableName from RD_ResultData where DataSet_Id=" + dataSetId);
+
+                var sql = GetSqlText("DataSet-DeleteDataSet.sql");
+                _dbKyStatic.Ado.ExecuteCommand(sql, new List<SugarParameter>(){
+                   new SugarParameter("@dataSetId",dataSetId)
+                });
+
                 foreach (var dbName in dbNameList)
                 {
                     var dropTable = $"drop table dbo.[{dbName}]";
                     _dbResearch.Ado.ExecuteCommand(dropTable);
                 }
-                var sql = GetSqlText("DataSet-DeleteDataSet.sql");
-                _dbKyStatic.Ado.ExecuteCommand(sql, new List<SugarParameter>(){
-                   new SugarParameter("@dataSetId",dataSetId)
-                });
+             
             }
             catch (Exception ex)
             {

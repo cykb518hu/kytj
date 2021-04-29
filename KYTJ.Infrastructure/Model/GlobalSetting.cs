@@ -16,5 +16,6 @@ namespace KYTJ.Infrastructure.Model
         public static string RScriptAcount { get; set; }
 
         public static int CacheExpire { get; set; }
+        public static string SiteUrl { get; set; }
     }
 }

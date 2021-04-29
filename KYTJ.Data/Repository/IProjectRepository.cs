@@ -18,6 +18,8 @@ namespace KYTJ.Data.Repository
         bool UpdateProject(int id, string projectName, string projectDesc);
 
         ProjectModel GetProjectById(int id);
+
+        List<ProjectModel> GetAllProjects();
     }
     public class ProjectRepository: KytjDbContext,IProjectRepository
     {
@@ -131,5 +133,21 @@ namespace KYTJ.Data.Repository
             }
             return resultsTask;
         }
+
+        public List<ProjectModel> GetAllProjects()
+        {
+            var resultsTask = new List<ProjectModel>();
+            try
+            {
+                var query = _dbKyStatic.Queryable<ProjectModel>();
+                resultsTask = query.Where(x => x.IsDeleted == 0).OrderBy("CreateTime desc").ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("查询项目失败GetAllProjects：" + ex.ToString());
+            }
+            return resultsTask;
+        }
+
     }
 }

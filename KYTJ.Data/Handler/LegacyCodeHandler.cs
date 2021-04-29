@@ -78,7 +78,7 @@ namespace KYTJ.Data.Handler
         public void CreateSchema(int datasetId,  DataTable dataTable)
         {
 
-            DataTable dt = dataTable.Clone();
+            //DataTable dt = dataTable.Clone();
 
             var sql = $"CREATE TABLE [" + dataTable.TableName + "] (%1)";
             var cols = new List<string>();
@@ -129,13 +129,13 @@ namespace KYTJ.Data.Handler
                                 ee = listCol.Max(c => c.Length);
                             else if (Isdouble)
                             {
-                                dt.Columns[i].DataType = System.Type.GetType("System.Double");
-                                dt.Columns[i].AllowDBNull = true;
+                                dataTable.Columns[i].DataType = System.Type.GetType("System.Double");
+                                dataTable.Columns[i].AllowDBNull = true;
                             }
                             else if (isDate)
                             {
-                                dt.Columns[i].DataType = System.Type.GetType("System.DateTime");
-                                dt.Columns[i].AllowDBNull = true;
+                                dataTable.Columns[i].DataType = System.Type.GetType("System.DateTime");
+                                dataTable.Columns[i].AllowDBNull = true;
                             }
                             break;
                         default:
@@ -223,9 +223,23 @@ namespace KYTJ.Data.Handler
                 bulk.BatchSize = 5000;
                 bulk.BulkCopyTimeout = 60;
                 bulk.DestinationTableName = tableName;
+
+                foreach (System.Data.DataRow row in table.Rows)
+                {
+                    for (var i = 0; i < table.Columns.Count; i++)
+                    {
+                        if (string.IsNullOrEmpty(row[i] as string))
+                        { 
+                            row[i] = null;
+                        }
+
+                    }
+                 
+                }
+
                 foreach (DataColumn col in table.Columns)
                 {
-                    bulk.ColumnMappings.Add(col.ColumnName, col.ColumnName.Replace("&", "_").Replace("-", "."));
+                    bulk.ColumnMappings.Add(col.ColumnName, col.ColumnName);
                 }
                 bulk.WriteToServer(table);
                 bulk.Close();

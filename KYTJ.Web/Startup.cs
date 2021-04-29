@@ -15,6 +15,9 @@ using KYTJ.Data.Repository;
 using Newtonsoft;
 using KYTJ.Infrastructure.Handler;
 using KYTJ.Business.Repository;
+using KYTJ.Web.Service;
+using SoapCore;
+using System.ServiceModel;
 
 namespace KYTJ.Web
 {
@@ -39,6 +42,7 @@ namespace KYTJ.Web
             services.AddTransient<IDataManageRepository, DataManageRepository>();
             services.AddTransient<IDataFlowRepository, DataFlowRepository>();
             services.AddTransient<ICacheHandler, LocalMemoryCache>();
+            services.AddTransient<IDataService, DataService>();
             KytjDbContext.KyStaticManagement = Configuration.GetConnectionString("KyStaticManagement");
             KytjDbContext.MySqlConnection = Configuration.GetConnectionString("MysqlConnection");
             KytjDbContext.ResearchData = Configuration.GetConnectionString("ResearchData");
@@ -54,6 +58,7 @@ namespace KYTJ.Web
             GlobalSetting.RScriptAcount = Configuration.GetValue<string>("GlobalSetting:RScriptAcount");
             GlobalSetting.Title = Configuration.GetValue<string>("GlobalSetting:Title");
             GlobalSetting.CacheExpire = Configuration.GetValue<int>("GlobalSetting:CacheExpire");
+            GlobalSetting.SiteUrl = Configuration.GetValue<string>("GlobalSetting:SiteUrl");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -78,7 +83,7 @@ namespace KYTJ.Web
             app.UseRouting();
 
             app.UseAuthorization();
-
+            app.UseSoapEndpoint<IDataService>("/DataService.asmx", new BasicHttpBinding(), SoapSerializer.XmlSerializer);
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
