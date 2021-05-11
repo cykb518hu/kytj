@@ -8,11 +8,11 @@
                     <node-menu @addNode="addNode" ref="nodeMenu"></node-menu>
 
                     <div style="float: right;margin-right: 5px">
-                        <el-button type="info" plain round icon="el-icon-delete"  @click="deleteElement" size="mini"  :disabled="!this.activeElement.type">删除</el-button>
+                        <!--<el-button type="info" plain round icon="el-icon-delete"  @click="deleteElement" size="mini"  :disabled="!this.activeElement.type">删除</el-button>
 
                         <el-button type="info" plain round icon="el-icon-download" @click="downloadData" size="mini">下载</el-button>
                         <el-button type="info" plain round icon="el-icon-document" @click="dataInfo" size="mini">流程信息</el-button>
-                        <el-button type="info" plain round  icon="el-icon-refresh" @click="dataInit" size="mini">重画</el-button>
+                        <el-button type="info" plain round  icon="el-icon-refresh" @click="dataInit" size="mini">重画</el-button>-->
                         <el-button type="info" plain round icon="el-icon-document" @click="openHelp" size="mini">帮助</el-button>
 
                     </div>

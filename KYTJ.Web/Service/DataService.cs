@@ -108,8 +108,12 @@ namespace KYTJ.Web.Service
                     WebClient webClient = new WebClient();
                     var obj = webClient.DownloadData(strFileName);//fileName 是远程url地址，可以url直接下载
                     Stream stream = new MemoryStream(obj);
-
-                    if (strFileName.IndexOf(".xlsx") == -1) //2003
+                    if (strFileName.IndexOf("/raw") > 0)
+                    {
+                        XSSFWorkbook xssfworkbook = new XSSFWorkbook(stream);
+                        sheet = xssfworkbook.GetSheetAt(0);
+                    }
+                    else if (strFileName.IndexOf(".xlsx") == -1) //2003
                     {
                         HSSFWorkbook hssfworkbook = new HSSFWorkbook(stream);
                         sheet = hssfworkbook.GetSheetAt(0);

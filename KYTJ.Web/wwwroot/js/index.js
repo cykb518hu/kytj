@@ -105,23 +105,5 @@ layui.config({
             });
         }
     });
-    $('#logOut').on('click', function () {
-        //top.window.location.href = "http://localhost:5105/Home/Logout?ClientUrl=" + encodeURI(location.origin);
-        
-        $.cookie('SSOUser', null, { expires: -7, path: '/' }); 
-        $.cookie('SSOTime', null, { expires: -7, path: '/' }); 
-        var logOutUrl = $("#logOutUrl").val();
-        //华西现场代码
-        $.get("/sts/Home/LogOut", function (res) {
-            console.log(res);
-            location.href = logOutUrl;
-        }).fail(function () { layer.msg("报错"); });
-
-        //logOutUrl = logOutUrl + "?ClientUrl=" + encodeURI(location.origin);
-       // $.get("/Home/LogOut", function (res) {
-        //    console.log(res);
-        //    location.href = logOutUrl;
-       // }).fail(function () { layer.msg("报错"); });
-    });
 });
 

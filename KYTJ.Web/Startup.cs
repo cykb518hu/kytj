@@ -18,6 +18,9 @@ using KYTJ.Business.Repository;
 using KYTJ.Web.Service;
 using SoapCore;
 using System.ServiceModel;
+using KYTJ.Web.Hanlder;
+using SSO.Client;
+using Microsoft.AspNetCore.CookiePolicy;
 
 namespace KYTJ.Web
 {
@@ -43,6 +46,7 @@ namespace KYTJ.Web
             services.AddTransient<IDataFlowRepository, DataFlowRepository>();
             services.AddTransient<ICacheHandler, LocalMemoryCache>();
             services.AddTransient<IDataService, DataService>();
+            services.AddTransient<ISSOUser, SSOUserRepository>();
             KytjDbContext.KyStaticManagement = Configuration.GetConnectionString("KyStaticManagement");
             KytjDbContext.MySqlConnection = Configuration.GetConnectionString("MysqlConnection");
             KytjDbContext.ResearchData = Configuration.GetConnectionString("ResearchData");
@@ -59,6 +63,17 @@ namespace KYTJ.Web
             GlobalSetting.Title = Configuration.GetValue<string>("GlobalSetting:Title");
             GlobalSetting.CacheExpire = Configuration.GetValue<int>("GlobalSetting:CacheExpire");
             GlobalSetting.SiteUrl = Configuration.GetValue<string>("GlobalSetting:SiteUrl");
+
+            SSOClient.AppName = Configuration.GetValue<string>("SSOClient:AppName");
+            SSOClient.VerifyUrl = Configuration.GetValue<string>("SSOClient:VerifyUrl");
+            SSOClient.LogoutUrl = Configuration.GetValue<string>("SSOClient:LogoutUrl");
+            SSOClient.GetUserUrl = Configuration.GetValue<string>("SSOClient:GetUserUrl");
+            SSOClient.ClientUrl = Configuration.GetValue<string>("SSOClient:ClientUrl");
+
+            services.AddMvc(options => {
+                options.Filters.Add(new SSOActionFIlter());
+            });
+            services.AddHttpClient();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -81,6 +96,13 @@ namespace KYTJ.Web
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            //ideally we should set this as httponly, since layout.cshtml need to read cookie via jquery 
+            //so disable it temporarily 
+            //app.UseCookiePolicy(new CookiePolicyOptions
+            //{
+            //    HttpOnly = HttpOnlyPolicy.Always
+            //});
 
             app.UseAuthorization();
             app.UseSoapEndpoint<IDataService>("/DataService.asmx", new BasicHttpBinding(), SoapSerializer.XmlSerializer);

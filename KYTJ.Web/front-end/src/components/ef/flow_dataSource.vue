@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :visible.sync="dialogVisible" width="50%" title="选择数据" :close-on-click-modal="false">
+  <el-dialog :visible.sync="dialogVisible" width="60%" title="选择数据" :close-on-click-modal="false" v-loading.fullscreen.lock="fullscreenLoading">
     <el-form :model="dataForm" label-width="120px">
       <el-form-item label="选择数据集合">
         <el-select
@@ -72,6 +72,7 @@ export default {
       nodeId: "",
       dialogVisible: false,
       projectId: 0,
+      fullscreenLoading: false,
     };
   },
   components: {},
@@ -157,6 +158,7 @@ export default {
           this.$message.warning("请选择数据集");
              return;
       }
+      this.fullscreenLoading=true;
         var param = {};
         param.resultDataId = this.dataForm.resultDataId;
         param.node = this.nodeId;
@@ -170,6 +172,7 @@ export default {
                 this.$message.error(res.data.msg);
                 console.log(res.data.msg);
               }
+              this.fullscreenLoading=false;
             });
     }
   },

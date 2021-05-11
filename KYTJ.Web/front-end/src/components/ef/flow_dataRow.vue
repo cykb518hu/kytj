@@ -1,7 +1,7 @@
 
 <template>
   <el-dialog :visible.sync="dialogVisible" width="60%" title="行处理" top="5vh" :close-on-click-modal="false" >
-    <div style="height:400px">
+    <div style="height:350px">
       <div>
         <el-row>
           <el-col :span="16">
@@ -24,7 +24,7 @@
             ref="multipleTable"
       :data="filterColumns"
       stripe
-      max-height="400"
+      max-height="300"
       style="width: 100%">
       <el-table-column
         label="列名"

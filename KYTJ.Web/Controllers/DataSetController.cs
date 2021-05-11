@@ -15,11 +15,13 @@ namespace KYTJ.Web.Controllers
         private readonly ILogger<DataSetController> _logger;
         private readonly IDataSetRepository _dataSetRepository;
         private readonly ILogRepository _logRepository;
-        public DataSetController(ILogger<DataSetController> logger, IDataSetRepository dataSetRepository, ILogRepository logRepository)
+        private readonly ISSOUser _ssoUser;
+        public DataSetController(ILogger<DataSetController> logger, IDataSetRepository dataSetRepository, ILogRepository logRepository, ISSOUser sSOUser)
         {
             _logger = logger;
             _dataSetRepository = dataSetRepository;
             _logRepository = logRepository;
+            _ssoUser = sSOUser;
         }
 
         public IActionResult Index()
@@ -46,7 +48,7 @@ namespace KYTJ.Web.Controllers
                     dataName = "";
                 }
                 var total = 0;
-                var userName = SSOUser.GetUserName();// HttpContext.User.Identity.Name;
+                var userName = _ssoUser.GetUserIdentity();
                 var data = _dataSetRepository.SearchEngineDataList(userName, dataName, pageIndex, pageSize, ref total);
                 return Json(new { success = true, data, total });
             }
@@ -63,7 +65,7 @@ namespace KYTJ.Web.Controllers
                 _logRepository.Add("抽取数据", "", "", "", $"抽取数据源ID:{exportDataId},项目id:{projectId}");
                 Task t = Task.Run(() =>
                 {
-                    var userName = SSOUser.GetUserName();// HttpContext.User.Identity.Name;
+                    var userName = _ssoUser.GetUserIdentity();
                     _dataSetRepository.ExtractEngineData(exportDataId, projectId, userName);
                 });
                
@@ -87,7 +89,7 @@ namespace KYTJ.Web.Controllers
                     dataSetName = "";
                 }
                 var total = 0;
-                var userName = SSOUser.GetUserName();// HttpContext.User.Identity.Name;
+                var userName = _ssoUser.GetUserIdentity();
                 var data = _dataSetRepository.SearchDataSetList(dataSetName, userName, pageIndex, pageSize,ref total );
                 return Json(new { success = true, data, total });
             }
@@ -122,7 +124,7 @@ namespace KYTJ.Web.Controllers
             {
                 _logRepository.Add("修改数据集", "", "", "", $"数据集DataSetId:{data.DataSetId}");
                 var result = false;
-                var userName = SSOUser.GetUserName();
+                var userName = _ssoUser.GetUserIdentity();
 
                 result = _dataSetRepository.UpdateDataSet(data);
 

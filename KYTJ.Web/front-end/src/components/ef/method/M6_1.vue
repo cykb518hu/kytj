@@ -51,6 +51,9 @@ export default {
             dataFlowCache: Object,
             methodName: {
               type:String
+            },
+            tableHeight:{
+              type:Number
             }
         },
 

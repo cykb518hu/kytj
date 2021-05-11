@@ -15,13 +15,15 @@ namespace KYTJ.Web.Controllers
         private readonly ILogger<DataManageController> _logger;
 
         private readonly IDataManageRepository _dataManageRepository;
+        private readonly ISSOUser _ssoUser;
 
 
         //rd  就是result data 
-        public DataManageController(ILogger<DataManageController> logger, IDataManageRepository dataManageRepository)
+        public DataManageController(ILogger<DataManageController> logger, IDataManageRepository dataManageRepository, ISSOUser  sSOUser)
         {
             _logger = logger;
             _dataManageRepository = dataManageRepository;
+            _ssoUser = sSOUser;
         }
         public IActionResult Index()
         {
@@ -38,7 +40,7 @@ namespace KYTJ.Web.Controllers
             {
 
                 var total = 0;
-                var userName = SSOUser.GetUserName();// HttpContext.User.Identity.Name;
+                var userName = _ssoUser.GetUserIdentity();
                 var data = _dataManageRepository.SearchRdColumnList(resultDataId, pageIndex, pageSize, ref total);
                 return Json(new { success = true, data, total });
             }

@@ -9,8 +9,8 @@
 
 </style>
 <template>
-  <el-dialog :visible.sync="dialogVisible" width="70%" title="统计分析" top="5vh" :close-on-click-modal="false" >
-        <el-tabs v-model="activeName"  style="height:500px;">
+  <el-dialog :visible.sync="dialogVisible" width="70%" title="统计分析" top="2vh" :close-on-click-modal="false"  v-loading.fullscreen.lock="fullscreenLoading">
+        <el-tabs v-model="activeName" >
           <el-tab-pane label="统计方法" name="method">
               <el-row :gutter="20">
                     <el-col :span="12">
@@ -44,7 +44,9 @@
 
           </el-tab-pane>
           <el-tab-pane label="统计参数" name="parameter">
-            <component :is="currentComponent" @onCalculate="onCalculate" :dataFlowCache="dataFlowCache" :methodName="methodName" ></component>
+            <div style="height:400px">
+              <component :is="currentComponent" @onCalculate="onCalculate" :dataFlowCache="dataFlowCache" :methodName="methodName" :tableHeight="tableHeight" ></component>
+            </div>
           </el-tab-pane>
           <el-tab-pane label="统计结果" name="result">
             <div>
@@ -122,16 +124,15 @@ export default {
       calculateMethod:"",
       caclulateResult:[],
       currentComponent:"",
-      methodName:""
+      methodName:"",
+      tableHeight:0,
+      fullscreenLoading:false
     };
   },
   components: {M1_1,M1_2,M2_1,M2_2,M2_3,M2_4,M3_1,M3_2,M4_1,M4_2,M4_3,M5_1,M5_2,M5_3,M5_4,M5_5,M5_6,M5_7,M5_8,M5_9,M5_10
   ,M6_1,M6_2,M6_3,M7_1,M7_2,M7_3,M8_1,M8_2,M8_3,M8_4,M8_5,M8_6,M8_8,M8_9,M8_10,M8_11,M8_12,M9_1,M9_2,M9_3,M9_4
   },
   methods: {
-    test(){
-       this.dialogVisible = true;
-    },
     init(nodeId,cache) {
       this.activeName="method";
       this.calculateMethod="";
@@ -140,6 +141,7 @@ export default {
       this.nodeId=nodeId;//nodeId;
       this.dialogVisible = true;
       this.dataFlowCache=cache;
+      this.tableHeight=window.innerHeight-200;
       this.getCalculateMethodList();
     },
         getCalculateMethodList(){
@@ -185,6 +187,7 @@ export default {
             }
           }
           param.node = this.nodeId;
+          this.fullscreenLoading=true;
           this.$axios
                 .post("dataFlow/Calculate", qs.stringify(param))
                 .then((res) => {
@@ -204,6 +207,7 @@ export default {
                     this.$message.error(res.data.msg);
                     console.log(res.data.msg);
                   }
+                  this.fullscreenLoading=false;
                 });
 
         },
@@ -216,6 +220,6 @@ function  adjustIframeHeight() {
  // let imgCopy=img.cloneNode(true);
   //let body=ifm.contentWindow.document.getElementsByTagName("body")[0];
  // body.appendChild(imgCopy);
-  ifm.height="400px";
+  ifm.height=window.innerHeight-200+"px";
 }
 </script>

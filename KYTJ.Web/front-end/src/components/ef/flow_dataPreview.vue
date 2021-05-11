@@ -7,9 +7,9 @@
   }
 </style>
 <template>
-  <el-dialog :visible.sync="dialogVisible"  v-if="dialogVisible" width="80%" title="数据预览" top="5vh" :close-on-click-modal="false" >
+  <el-dialog :visible.sync="dialogVisible"  v-if="dialogVisible" width="90%" title="数据预览" top="2vh" :close-on-click-modal="false" >
     <el-row :gutter="20">
-      <el-col :span="12">
+      <el-col :span="14">
         <div class="grid-content">
          <el-table
       :data="dataFlowCache.dataColumns"
@@ -41,7 +41,7 @@
     </el-table>
         </div>
         </el-col>
-      <el-col :span="12">
+      <el-col :span="10">
         <div class="grid-content">
           <div>
            {{selectedRow.name}}: 数据分布
@@ -135,8 +135,8 @@ export default {
       dataFlowCache:[],
       selectedRow:[],
       tableConfig:{
-        leftTableHeight:window.innerHeight-200,
-        divHeight:window.innerHeight-350,
+        leftTableHeight:0,
+        divHeight:window.innerHeight-0,
 
       }
 
@@ -148,16 +148,11 @@ export default {
       this.dialogVisible = true;
       this.dataFlowCache=cache;
       this.selectedRow=[];
-      this.tableConfig.leftTableHeight=window.innerHeight-200;
-      this.tableConfig.divHeight=window.innerHeight-350;
+      this.tableConfig.leftTableHeight=window.innerHeight-125;
+      this.tableConfig.divHeight=window.innerHeight-300;
 
     },
-    created () {
-      window.addEventListener('resize', this.getHeight)
-    },
-  destroyed () {
-      window.removeEventListener('resize', this.getHeight)
-    },
+
         isContinuousFormatter(row, column) {
                 if (row.isContinuous) {
                     return '连续';
@@ -171,9 +166,7 @@ export default {
           this.drawBar();
 
         },
-        getHeight () {
-          this.tableConfig.leftTableHeight = window.innerHeight - 159
-        },
+
         drawBar(){
             // 基于准备好的dom，初始化echarts实例
             let myChart = this.$echarts.init(document.getElementById('myChart'))

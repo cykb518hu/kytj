@@ -5,7 +5,7 @@
                                   ref="multipleTable"
                             :data="dataColumns"
                             stripe
-                            max-height="400"
+                            :max-height="tableHeight"
                             style="width: 100%"
                             @selection-change="handleSelectionChange">
                               <el-table-column
@@ -65,6 +65,9 @@ export default {
             dataFlowCache: Object,
             methodName: {
               type:String
+            },
+            tableHeight:{
+              type:Number
             }
         },
 

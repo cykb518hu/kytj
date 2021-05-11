@@ -16,10 +16,12 @@ namespace KYTJ.Web.Controllers
         private readonly ILogRepository _logRepository;
 
         private readonly ILogger<LogController> _logger;
-        public LogController (ILogRepository logRepository, ILogger<LogController> logger)
+        private readonly ISSOUser _ssoUser;
+        public LogController (ILogRepository logRepository, ILogger<LogController> logger, ISSOUser sSOUser)
         {
             _logRepository = logRepository;
             _logger = logger;
+            _ssoUser = sSOUser;
         }
         public IActionResult Index()
         {
@@ -39,14 +41,18 @@ namespace KYTJ.Web.Controllers
                     DateTime.TryParse(logDateRange[0].Substring(0, 24), out startDate);
                     DateTime.TryParse(logDateRange[1].Substring(0, 24), out endDate);
                 }
-                var role = "11admin";// HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role).Value;
-                var userName = SSOUser.GetUserName();// HttpContext.User.Identity.Name;
+                var role = "none"; 
+                var userName = _ssoUser.GetUserIdentity();
+
+                if(userName.ToLower()=="sys")
+                {
+                    role = "admin";// to do, this haven't done yet
+                }
                 if (startDate == endDate)
                 {
                     endDate = endDate.AddDays(1);
                 }
                 var data = _logRepository.Search(startDate, endDate, role, userName, pageIndex, pageSize, ref total);
-                //  var data = JsonConvert.SerializeObject(list, _jsonSetting);
                 return Json(new { success = true, data, total });
             }
             catch (Exception ex)

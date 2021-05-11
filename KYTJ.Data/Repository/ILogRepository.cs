@@ -32,7 +32,6 @@ namespace KYTJ.Data.Repository
             try
             {
                 LogModel actionLog = new LogModel();
-                userName = "kpi";
                 actionLog.DtDate = DateTime.Now;
                 actionLog.Level = "INFO";
                 actionLog.Account = userName;

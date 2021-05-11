@@ -1,37 +1,35 @@
 
 <template>
-  <el-dialog :visible.sync="dialogVisible" width="80%" title="过滤" top="5vh" :close-on-click-modal="false" >
+  <el-dialog :visible.sync="dialogVisible" v-if="dialogVisible" width="80%" title="过滤" top="2vh" :close-on-click-modal="false" >
     <div>
       <div>
         <el-row>
-          <el-col :span="8">
+          <el-col :span="24">
             条件:
              <el-select v-model="filterType" placeholder="请选择条件" style="width:280px">
                   <el-option label="排除具有过多缺失值的字段" value="defect"></el-option>
                   <el-option label="排除具有过多唯一类别的名义字段" value="unique"></el-option>
                   <el-option label="排除单个类别中具有过多值的分类字段" value="single"></el-option>
              </el-select>
-          </el-col>
-          <el-col :span="4">
-              预期: <el-input v-model="filterPercent"
+             &nbsp;
+             预期: <el-input v-model="filterPercent"
                           placeholder="20" style="width:80px"></el-input>&nbsp;%
-          </el-col>
-          <el-col :span="12">
-            <el-button plain @click="onSearch" type="primary">筛选</el-button>
+             &nbsp;
+             <el-button plain @click="onSearch" type="primary">筛选</el-button>
 
             <el-button @click="onDelete" type="primary" >删除选中字段</el-button>
-            </el-col>
+          </el-col>
 
         </el-row>
       </div>
-      <div style="margin-top:20px">
+      <div style="margin-top:20px;" >
 
 <div style="float:right"> &nbsp;&nbsp;总记录:{{dataColumns.length}}/选中列:{{multipleSelection.length}} </div>
             <el-table
             ref="multipleTable"
       :data="dataColumns"
       stripe
-      max-height="400"
+      :max-height="tableConfig.height"
       style="width: 100%"
       @selection-change="handleSelectionChange">
          <el-table-column
@@ -79,7 +77,11 @@ export default {
       preNodeId:"",
       filterType:"",
       filterPercent:"",
-      multipleSelection:[]
+      multipleSelection:[],
+      tableConfig:{
+        height:window.innerHeight-200,
+
+      }
 
     };
   },
@@ -90,6 +92,7 @@ export default {
       this.dialogVisible = true;
       this.dataFlowCache=cache;
       this.dataColumns=cache.dataColumns;
+      this.tableConfig.height=window.innerHeight-200;
     },
         isContinuousFormatter(row, column) {
                 if (row.isContinuous) {

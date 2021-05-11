@@ -14,11 +14,13 @@ namespace KYTJ.Web.Controllers
         private readonly ILogger<ProjectController> _logger;
         private readonly IProjectRepository _projectRepository;
         private readonly ILogRepository _logRepository;
-        public ProjectController(ILogger<ProjectController> logger, IProjectRepository projectRepository, ILogRepository logRepository)
+        private readonly ISSOUser _ssoUser;
+        public ProjectController(ILogger<ProjectController> logger, IProjectRepository projectRepository, ILogRepository logRepository,ISSOUser sSOUser)
         {
             _logger = logger;
             _projectRepository = projectRepository;
             _logRepository = logRepository;
+            _ssoUser = sSOUser;
         }
         public IActionResult Index()
         {
@@ -32,7 +34,7 @@ namespace KYTJ.Web.Controllers
             {
                 var total = 0;
 
-                var userName = SSOUser.GetUserName();// HttpContext.User.Identity.Name;
+                var userName = _ssoUser.GetUserIdentity();
                 var data = _projectRepository.Search(userName, pageIndex, pageSize, ref total);
                 return Json(new { success = true, data, total });
             }
@@ -67,7 +69,7 @@ namespace KYTJ.Web.Controllers
             try
             {
                 var result = false;
-                var userName = SSOUser.GetUserName();
+                var userName = _ssoUser.GetUserIdentity();
                 if (id > 0)
                 {
                     _logRepository.Add($"修改项目", "", "", "", $"项目ID:{id}");
@@ -97,7 +99,7 @@ namespace KYTJ.Web.Controllers
             {
                 var total = 0;
 
-                var userName = SSOUser.GetUserName();// HttpContext.User.Identity.Name;
+                var userName = _ssoUser.GetUserIdentity();// HttpContext.User.Identity.Name;
                 var data = _projectRepository.GetProjectAndSub(userName);
                 return Json(new { success = true, data, total });
             }
