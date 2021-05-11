@@ -34,11 +34,11 @@ namespace KYTJ.Data.Repository
     public class DataSetRepository : KytjDbContext, IDataSetRepository
     {
         private readonly ILogger<DataSetRepository> _logger;
-        private readonly ILogger<LegacyCodeHandler> _extractEngineDataHandlerlogger;
-        public DataSetRepository(ILogger<DataSetRepository> logger, ILogger<LegacyCodeHandler> extractEngineDataHandlerlogger)
+        private readonly ILogger<LegacyCodeHandler> _legacyCodeHandler;
+        public DataSetRepository(ILogger<DataSetRepository> logger, ILogger<LegacyCodeHandler> legacyCodeHandler)
         {
             _logger = logger;
-            _extractEngineDataHandlerlogger = extractEngineDataHandlerlogger;
+            _legacyCodeHandler = legacyCodeHandler;
         }
 
         public List<SearchEngineDataModel> SearchEngineDataList(string userName,string dataName, int pageIndex, int pageSize, ref int totalCount)
@@ -81,9 +81,9 @@ namespace KYTJ.Data.Repository
                 DataTable dtSource = _dbMySql.Ado.GetDataTable(extractDataListSql);
 
                 _logger.LogInformation("开始数据表格式处理");
-                LegacyCodeHandler extractEngineDataHandler = new LegacyCodeHandler(_extractEngineDataHandlerlogger);
+                LegacyCodeHandler legacyCodeHandler = new LegacyCodeHandler(_legacyCodeHandler);
                 //数据转成表格
-                DataTable dtFormat = extractEngineDataHandler.ConvertToStandardTable(dtSource, engineData.DataType);
+                DataTable dtFormat = legacyCodeHandler.ConvertToStandardTable(dtSource, engineData.DataType);
                 dtFormat.TableName = tableName;
 
                 _logger.LogInformation("开始在sql server创建mapping关系");
@@ -93,7 +93,7 @@ namespace KYTJ.Data.Repository
                 _logger.LogInformation("开始导入数据");
 
                 //创建数据表 将所有列插入到data_field 表
-                extractEngineDataHandler.CreateSchemaAndExportData(extractDataSetMappingModel, dtFormat);
+                legacyCodeHandler.CreateSchemaAndExportData(extractDataSetMappingModel, dtFormat);
                 _logger.LogInformation($"抽取结束datasetId:{extractDataSetMappingModel.DataSetId},tableId:{extractDataSetMappingModel.TableId}");
 
 
@@ -127,10 +127,10 @@ namespace KYTJ.Data.Repository
                 });
                 _logger.LogInformation("开始导入数据");
 
-                LegacyCodeHandler extractEngineDataHandler = new LegacyCodeHandler(_extractEngineDataHandlerlogger);
+                LegacyCodeHandler legacyCodeHandler = new LegacyCodeHandler(_legacyCodeHandler);
                 //创建数据表 将所有列插入到data_field 表
                 dtFormat.TableName = tableName;
-                extractEngineDataHandler.CreateSchemaAndExportData(extractDataSetMappingModel, dtFormat);
+                legacyCodeHandler.CreateSchemaAndExportData(extractDataSetMappingModel, dtFormat);
                 _logger.LogInformation($"抽取结束datasetId:{extractDataSetMappingModel.DataSetId},tableId:{extractDataSetMappingModel.TableId}");
 
 

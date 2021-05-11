@@ -44,58 +44,60 @@ namespace KYTJ.Web.Hanlder
         
         public void OnActionExecuting(ActionExecutingContext context)
         {
-            var token = "";
-            context.HttpContext.Request.Cookies.TryGetValue("token", out token);
-
-            if (context.HttpContext.Request.Method == "GET")
+            if (SSOClient.Enable)
             {
-                if (string.IsNullOrEmpty(token))
-                {
-                    token = context.HttpContext.Request.Query["token"];
-                }
+                var token = "";
+                context.HttpContext.Request.Cookies.TryGetValue("token", out token);
 
-                if (string.IsNullOrEmpty(token))
+                if (context.HttpContext.Request.Method == "GET")
                 {
-                    token = context.HttpContext.Request.Query["tk"];
-                }
-            }
-            if (context.HttpContext.Request.Method == "POST")
-            {
-                if (string.IsNullOrEmpty(token))
-                {
-                    token = context.HttpContext.Request.Form["token"];
-                }
-                if (string.IsNullOrEmpty(token))
-                {
-                    token = context.HttpContext.Request.Form["tk"];
-                }
-            }
-
-            if (!string.IsNullOrEmpty(token))
-            {
-                using (var httpClient = new HttpClient())
-                {
-                    var url = $"{SSOClient.GetUserUrl}?token={token}";
-                    var httpResponseMessage = httpClient.GetStringAsync(url).Result;
-                    var user = JsonConvert.DeserializeObject<SSOUserModel>(httpResponseMessage);
-                    if (user != null && !string.IsNullOrEmpty(user.Identity))
+                    if (string.IsNullOrEmpty(token))
                     {
-                        context.HttpContext.Response.Cookies.Append("token", token);
-                        context.HttpContext.Response.Cookies.Append("Identity", user.Identity);
-                        context.HttpContext.Response.Cookies.Append("UserName", user.UserName);
+                        token = context.HttpContext.Request.Query["token"];
                     }
-                    else
+
+                    if (string.IsNullOrEmpty(token))
                     {
-                        RedirectToSSO(context);
+                        token = context.HttpContext.Request.Query["tk"];
                     }
                 }
-               
-            }
-            else
-            {
-                RedirectToSSO(context);
-            }
+                if (context.HttpContext.Request.Method == "POST")
+                {
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        token = context.HttpContext.Request.Form["token"];
+                    }
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        token = context.HttpContext.Request.Form["tk"];
+                    }
+                }
 
+                if (!string.IsNullOrEmpty(token))
+                {
+                    using (var httpClient = new HttpClient())
+                    {
+                        var url = $"{SSOClient.GetUserUrl}?token={token}";
+                        var httpResponseMessage = httpClient.GetStringAsync(url).Result;
+                        var user = JsonConvert.DeserializeObject<SSOUserModel>(httpResponseMessage);
+                        if (user != null && !string.IsNullOrEmpty(user.Identity))
+                        {
+                            context.HttpContext.Response.Cookies.Append("token", token);
+                            context.HttpContext.Response.Cookies.Append("Identity", user.Identity);
+                            context.HttpContext.Response.Cookies.Append("UserName", user.UserName);
+                        }
+                        else
+                        {
+                            RedirectToSSO(context);
+                        }
+                    }
+
+                }
+                else
+                {
+                    RedirectToSSO(context);
+                }
+            }
         }
         public void OnActionExecuted(ActionExecutedContext context)
         {

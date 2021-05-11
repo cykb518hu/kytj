@@ -18,15 +18,21 @@ namespace SSO.Client
         }
         public string GetUserName()
         {
-            var result = "";
-            _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue("UserName", out result);
+            var result = "kpi";
+            if (SSOClient.Enable)
+            {
+                _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue("UserName", out result);
+            }
             return result;
         }
 
         public string GetUserIdentity()
         {
-            var result= "";
-            _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue("Identity", out result);
+            var result= "kpi";
+            if (SSOClient.Enable)
+            {
+                _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue("Identity", out result);
+            }
             return result;
         }
     }
@@ -39,6 +45,7 @@ namespace SSO.Client
 
     public class SSOClient
     {
+        public static bool Enable { get; set; }
         public static string AppName { get; set; }
         public static string VerifyUrl { get; set; }
         public static string LogoutUrl { get; set; }

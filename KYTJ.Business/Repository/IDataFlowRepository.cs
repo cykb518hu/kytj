@@ -28,6 +28,8 @@ namespace KYTJ.Business.Repository
         int DataRowFilterByColumns(string node, List<DataRowFilter> filterColumns);
         bool DataSampleExtractSimple(string node, DataSampleModel simObj);
         bool DataCombineAppend(string node, List<string> prevNodeIds, string fieldSource);
+
+        bool DataColumnFillField(string node, string fieldName, string condition, string filedValue);
     }
 
     public class DataFlowRepository: IDataFlowRepository
@@ -553,7 +555,45 @@ namespace KYTJ.Business.Repository
             return result;
         }
 
-
+        public bool DataColumnFillField(string node, string fieldName, string condition, string filedValue)
+        {
+            var result = true;
+            try
+            {
+                var cacheData = GetDataFlowCache(node);
+                var dt = cacheData.DataTable;
+                StringBuilder filter = new StringBuilder();
+                switch (condition)
+                {
+                    case "null":
+                        filter.Append($"{fieldName} is null and ");
+                        break;
+                    case "blank":
+                        filter.Append($"{fieldName} ='' and ");
+                        break;
+                    case "blankOrNull":
+                        filter.Append($"{fieldName} is null or {fieldName} =''  and ");
+                        break;
+                }
+                filter.Append(" 1=1");
+                var rows = dt.Select(filter.ToString());
+                if (rows != null && rows.Length > 0)
+                {
+                    for (int i = 0; i < rows.Length; i++)
+                    {
+                        rows[i][fieldName] = filedValue;
+                    }
+                    var handler = new LegacyCodeHandler(_extractEngineDataHandlerlogger);
+                    cacheData.DataColumns = handler.GenerateColumnDataForCache(cacheData.DataTable, cacheData.DataColumns);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("DataColumnFillField失败：" + ex.ToString());
+                result = false;
+            }
+            return result;
+        }
     }
 
 }

@@ -61,7 +61,7 @@
             <el-table-column label="操作" min-width="10%">
                 <template slot-scope="scope">
                     <el-link type="primary" v-on:click="showRemDlg(scope.row)">编辑</el-link>
-                    <el-link type="primary" v-on:click="showDeleteDlg(scope.row.dataSetId)">填充</el-link>
+                    <el-link type="primary" v-on:click="showfillFieldDlg(scope.row)">填充</el-link>
                 </template>
             </el-table-column>
         </el-table>
@@ -77,26 +77,39 @@
     </div>
 
 
-    <el-dialog title="编辑" v-bind:visible.sync="editRemDlg" top="5vh" width="40%"  :close-on-click-modal="false">
-        <div style="min-height:250px;overflow-x:hidden;">
+    <el-dialog title="编辑" v-bind:visible.sync="editRemDlg" top="5vh" width="40%" :close-on-click-modal="false">
+        <div style="min-height:150px;overflow-x:hidden;">
             <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
                 <el-form-item label="重命名" prop="rem">
                     <el-input v-model="ruleForm.rem"></el-input>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" v-on:click="submitRemFormData('ruleForm')">提交</el-button>
-                    <el-button v-on:click="editRemDlg=false">取消</el-button>
                 </el-form-item>
             </el-form>
         </div>
     </el-dialog>
 
-    <el-dialog title="提示" :visible.sync="deleteDlg" top="5vh" center>
-        <div class="del-dialog-cnt">删除不可恢复，是否确定删除？</div>
-        <span slot="footer" class="dialog-footer">
-            <el-button v-on:click="deleteProjectDlg=deleteDlg">取 消</el-button>
-            <el-button type="primary" v-on:click="deleteDataSet">确 定</el-button>
-        </span>
+    <el-dialog title="填充" v-bind:visible.sync="fillFieldDlg" top="5vh" width="40%" :close-on-click-modal="false">
+        <div style="min-height:250px;padding-right:50px">
+            <el-form :model="fillForm" status-icon :rules="fillRules" ref="fillForm" label-width="100px" class="demo-ruleForm">
+                <el-form-item label="填充模式:" prop="condition">
+                    <el-select v-model="fillForm.condition" placeholder="请选择...">
+                        <el-option label="所有值" value="all"></el-option>
+                        <el-option label="空白值" value="blank"></el-option>
+                        <el-option label="空值" value="null"></el-option>
+                        <el-option label="空白值和空值" value="blankOrNull"></el-option>
+                    </el-select>
+                </el-form-item>
+                <br />
+                <el-form-item label="填充为" prop="filedValue">
+                    <el-input v-model="fillForm.fieldValue"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" v-on:click="fillFieldFormData('fillForm')">提交</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
     </el-dialog>
 </div>
 
@@ -108,11 +121,11 @@
                 DataCheckList: [],
                 total: 0,
                 pageIndex: 1,
-                pageSize:10,
+                pageSize: 10,
                 fullscreenLoading: false,
                 dataSetName: "",
                 editRemDlg: false,
-                deleteDlg: false,
+                fillFieldDlg: false,
                 projectAndSub: [],
                 SelectForm: {
                     projectId: "",
@@ -120,7 +133,7 @@
                     dataSetId: "",
                     dataSetList: [],
                     resultDataId: "",
-                    resultDataList:[]
+                    resultDataList: []
                 },
                 ruleForm: {
                     rem: "",
@@ -128,6 +141,19 @@
                 },
                 rules: {
                     rem: [{ required: true, message: '请输入内容', trigger: 'blur' }],
+                },
+
+                fillForm: {
+                    condition: "",
+                    fieldValue: "",
+                    columnName: "",
+                    resultDataId: "",
+                    rdDataColumnId:""
+
+                },
+                fillRules: {
+                    condition: [{ required: true, message: '请选填充模式', trigger: 'blur' }],
+                    fieldValue: [{ required: true, message: '请输入内容', trigger: 'blur' }]
                 }
 
             };
@@ -161,8 +187,13 @@
                     }
                 });
             },
-            showDeleteDlg: function (id) {
-                this.deleteDlg = true;
+            showfillFieldDlg: function (row) {
+                this.fillFieldDlg = true;
+                this.fillForm.condition = "";
+                this.fillForm.fieldValue = "";
+                this.fillForm.columnName = row.name;
+                this.fillForm.resultDataId = row.resultDataId;
+                this.fillForm.rdDataColumnId = row.id;
             },
             showRemDlg: function (row) {
                 this.editRemDlg = true;
@@ -205,30 +236,38 @@
                     }
                 });
             },
-            deleteDataSet: function () {
-                var param = {};
+            fillFieldFormData: function (formName) {
+                var param = this.fillForm;
                 var that = this;
-                $.ajax({
-                    url: "/DataSet/DeleteDataSet",
-                    type: "Post",
-                    data: param,
-                    dataType: 'json',
-                    success: function (data) {
-                        that.deleteDlg = false;
-                        if (data && data.success) {
-                            that.$message({
-                                type: "success",
-                                message: data.msg
-                            });
-                            that.onSearch();
-                        }
-                        else {
-                            that.$message({
-                                type: "error",
-                                message: data.msg
-                            });
-                            console.log(data.msg);
-                        }
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        $.ajax({
+                            url: "/DataManage/FillRdField",
+                            type: "Post",
+                            data: param,
+                            dataType: 'json',
+                            success: function (data) {
+                                that.fillFieldDlg = false;
+                                that.searchList();
+                                if (data && data.success) {
+                                    that.$message({
+                                        type: "success",
+                                        message: data.msg
+                                    });
+                                }
+                                else {
+                                    that.$message({
+                                        type: "error",
+                                        message: data.msg
+                                    });
+                                    console.log(data.msg);
+                                }
+                            }
+                        });
+
+                    } else {
+                        console.log('error submit!!');
+                        return false;
                     }
                 });
             },

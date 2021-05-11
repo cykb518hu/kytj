@@ -253,7 +253,6 @@ namespace KYTJ.Data.Handler
 
                 var rdDataColumns = new List<RdDataColumn>();
                 var dataCount = dt.Rows.Count;
-                List<RdGroupingTag> removedTags = new List<RdGroupingTag>();
                 for (int i = 0; i < dt.Columns.Count; i++)
                 {
                     var name = dt.Columns[i].ColumnName;
@@ -264,9 +263,7 @@ namespace KYTJ.Data.Handler
                     col.Rem = name;
                     var kindCount = 0;
                     var nullCount = 0;
-                    List<RdGroupingTag> tags = new List<RdGroupingTag>();
-                    var colStat = GenerateColumnStatistics(dt, col, dataCount, out kindCount, out tags,out nullCount);
-                    removedTags.AddRange(tags);
+                    var colStat = GenerateColumnStatistics(dt, col, dataCount, out kindCount, out nullCount);
                     col.StatisticsInfo = JsonConvert.SerializeObject(colStat);
                     col.IsContinuous = (kindCount == 0);
                     col.KindCount = kindCount;
@@ -277,17 +274,49 @@ namespace KYTJ.Data.Handler
                     }
                     rdDataColumns.Add(col);
                 }
-                if (removedTags != null && removedTags.Count > 0)
-                {
-                    _dbKyStatic.Deleteable<RdGroupingTag>().In(removedTags.Select(x => x.Id).ToList());
-                }
-
                 _dbKyStatic.Insertable(rdDataColumns).AddSubList(x => x.GroupingTags.First().DataColumnId)
                   .ExecuteReturnPrimaryKey();
             }
             catch (Exception ex)
             {
                 _logger.LogInformation("更新分析数据失败:" + ex.ToString());
+                throw ex;
+            }
+        }
+
+        public void GenerateColumnDataForSingleColumn(DataTable dt, string columnName, int rdDataColumnId)
+        {
+            try
+            {
+
+                var dataCount = dt.Rows.Count;
+                List<RdGroupingTag> removedTags = new List<RdGroupingTag>();
+
+                var col = new RdDataColumn();
+                col.GroupingTags = new List<RdGroupingTag>();
+                col.Name = columnName;
+                col.Rem = columnName;
+                var kindCount = 0;
+                var nullCount = 0;
+                var colStat = GenerateColumnStatistics(dt, col, dataCount, out kindCount, out nullCount);
+                col.StatisticsInfo = JsonConvert.SerializeObject(colStat);
+                col.IsContinuous = (kindCount == 0);
+                col.KindCount = kindCount;
+                col.NullPercent = ((double)nullCount / dataCount).ToString("P");
+                _dbKyStatic.Deleteable<RdGroupingTag>().Where(x => x.DataColumnId == rdDataColumnId).ExecuteCommand();
+                if (col.GroupingTags.Any())
+                {
+                    col.GroupingTags.ForEach(x => { x.DataColumnId = rdDataColumnId; });
+                    _dbKyStatic.Insertable<RdGroupingTag>(col.GroupingTags).ExecuteCommand();
+                }
+                _dbKyStatic.Updateable<RdDataColumn>()
+                   .SetColumns(x => new RdDataColumn() { IsContinuous = col.IsContinuous, StatisticsInfo=col.StatisticsInfo,KindCount=col.KindCount,NullPercent=col.NullPercent })
+                   .Where(x => x.Id == rdDataColumnId).ExecuteCommandHasChange();
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation("GenerateColumnDataForSingleColumn更新分析数据失败:" + ex.ToString());
                 throw ex;
             }
         }
@@ -306,8 +335,7 @@ namespace KYTJ.Data.Handler
                     col.Rem = name;
                     var kindCount = 0;
                     var nullCount = 0;
-                    List<RdGroupingTag> tags = new List<RdGroupingTag>();
-                    var colStat = GenerateColumnStatistics(dt, col, dataCount, out kindCount, out tags, out nullCount);
+                    var colStat = GenerateColumnStatistics(dt, col, dataCount, out kindCount,out nullCount);
 
                     col.StatisticsInfo = JsonConvert.SerializeObject(colStat);
                     col.IsContinuous = (kindCount == 0);
@@ -344,7 +372,7 @@ namespace KYTJ.Data.Handler
             }
             return result;
         }
-        public List<object> GenerateColumnStatistics(System.Data.DataTable dt, Model.RdDataColumn column, int dataCount, out int kindCount, out List<RdGroupingTag> tagsRemoved, out int nullCount)
+        public List<object> GenerateColumnStatistics(System.Data.DataTable dt, Model.RdDataColumn column, int dataCount, out int kindCount, out int nullCount)
         {
             int continuesBaseCount = 9; //多少数值算连续变量
             int count = dataCount;
@@ -356,7 +384,6 @@ namespace KYTJ.Data.Handler
             bool isNum = true;
             //string nullKey = $"<null>{column.Name}";
             string nullKey = "";
-            tagsRemoved = new List<RdGroupingTag>();
             //var data = new List<Dictionary<string, object>>();
             string type = dt.Columns[$"{column.Name}"].DataType.Name;
             List<object> colStatis = new List<object>();
@@ -518,19 +545,14 @@ namespace KYTJ.Data.Handler
             {
                 if (column.IsGrouping == false)
                 {
-                    var tmpList = new List<RdGroupingTag>();
-                    column.GroupingTags.ToList().ForEach(t => { tmpList.Add(t); });
                     foreach (var val in valCountDict.Keys)
                     {
                         colStatis.Add(new { value = val ?? "", count = valCountDict[val], percent = valCountDict[val] * 1.0 / count * 100 });
                         if (val != null)
                         {
-                            var tag = tmpList.Where(t => t.Name == val.ToString()).FirstOrDefault(); //new GroupingTag() { Index = val.Key, Name = val.Key, };
-                            if (tag == null) column.GroupingTags.Add(new RdGroupingTag() { Index = val.ToString(), Name = val.ToString(), });
-                            else tmpList.Remove(tag);
+                            column.GroupingTags.Add(new RdGroupingTag() { Index = val.ToString(), Name = val.ToString(), });
                         }
                     }
-                    tagsRemoved = tmpList;
                 }
             }
             kindCount = isNum && valCountDict.Keys.Count > continuesBaseCount ? 0 : valCountDict.Keys.Count();

@@ -106,5 +106,24 @@ namespace KYTJ.Web.Controllers
                 return Json(new { success = false, msg = ex.ToString() });
             }
         }
+
+        public JsonResult FillRdField(FillFieldRdColumnModel param)
+        {
+            try
+            {
+                var result = false;
+                result = _dataManageRepository.FillRdField(param);
+                var msg = "操作成功";
+                if (!result)
+                {
+                    msg = "操作失败";
+                }
+                return Json(new { success = result, msg });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, msg = ex.ToString() });
+            }
+        }
     }
 }

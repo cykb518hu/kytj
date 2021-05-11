@@ -304,14 +304,26 @@ namespace KYTJ.Web.Controllers
             }
         }
 
+        public JsonResult DataColumnFillField(string node, string fieldName, string condition,string filedValue)
+        {
+            try
+            {
+                var result = true;
+                var msg = "填充成功";
+                result = _dataFlowRepository.DataColumnFillField(node, fieldName, condition, filedValue);
+                if (!result)
+                {
+                    msg = "填充失败";
+                }
 
-    }
+                return Json(new { success = result, msg });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, msg = ex.ToString() });
+            }
+        }
 
-    public class TestModel
-    {
-        public string Name { get; set; }
-        public string SubName { get; set; }
 
-        public string SubValue { get; set; }
     }
 }

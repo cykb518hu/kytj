@@ -95,4 +95,13 @@ namespace KYTJ.Model
         [SugarColumn(ColumnName = "DataColumn_Id")]
         public int DataColumnId { get; set; }
     }
+
+    public class FillFieldRdColumnModel
+    {
+        public string Condition { get; set; }
+        public string FieldValue { get; set; }
+        public string ColumnName { get; set; }
+        public int ResultDataId { get; set; }
+        public int RdDataColumnId { get; set; }
+    }
 }

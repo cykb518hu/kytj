@@ -69,7 +69,7 @@ namespace KYTJ.Web
             SSOClient.LogoutUrl = Configuration.GetValue<string>("SSOClient:LogoutUrl");
             SSOClient.GetUserUrl = Configuration.GetValue<string>("SSOClient:GetUserUrl");
             SSOClient.ClientUrl = Configuration.GetValue<string>("SSOClient:ClientUrl");
-
+            SSOClient.Enable = Configuration.GetValue<bool>("SSOClient:Enable");
             services.AddMvc(options => {
                 options.Filters.Add(new SSOActionFIlter());
             });

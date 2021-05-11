@@ -26,15 +26,17 @@ namespace KYTJ.Data.Repository
         List<StatisticsMethodModel> GetStatisticsMethod();
 
         List<DictionaryDTO> GetDictionaryDTOs(string type);
+        bool FillRdField(FillFieldRdColumnModel param);
     }
 
     public class DataManageRepository : KytjDbContext, IDataManageRepository
     {
         private readonly ILogger<DataManageRepository> _logger;
-        public DataManageRepository(ILogger<DataManageRepository> logger)
+        private readonly ILogger<LegacyCodeHandler> _legacyCodeHandler;
+        public DataManageRepository(ILogger<DataManageRepository> logger, ILogger<LegacyCodeHandler> legacyCodeHandler)
         {
             _logger = logger;
-            
+            _legacyCodeHandler = legacyCodeHandler;
         }
     
   
@@ -187,6 +189,47 @@ namespace KYTJ.Data.Repository
             catch (Exception ex)
             {
                 _logger.LogError("GetDictionaryDTOs失败：" + ex.ToString());
+            }
+            return result;
+        }
+
+        public bool FillRdField(FillFieldRdColumnModel param)
+        {
+            var result = true;
+            try
+            {
+                LegacyCodeHandler legacyCodeHandler = new LegacyCodeHandler(_legacyCodeHandler);
+                var rd = _dbKyStatic.Queryable<ResultData>().Where(x => x.Id == param.ResultDataId).ToList().FirstOrDefault();
+                var tableName = rd.TableName;
+
+                StringBuilder filter = new StringBuilder();
+                filter.Append($" update dbo.[{tableName}] set [{param.ColumnName}] =@value where ");
+                switch (param.Condition)
+                {
+                    case "null":
+                        filter.Append($"[{param.ColumnName}] is null and ");
+                        break;
+                    case "blank":
+                        filter.Append($"[{param.ColumnName}] ='' and ");
+                        break;
+                    case "blankOrNull":
+                        filter.Append($"[{param.ColumnName}] is null or [{param.ColumnName}] =''  and ");
+                        break;
+                }
+                filter.Append(" 1=1");
+
+                var count = _dbResearch.Ado.ExecuteCommand(filter.ToString(), new List<SugarParameter>(){
+                   new SugarParameter("@value",param.FieldValue) });
+                if (count > 0)
+                {
+                    var dt = GetOriginalDataFromMySql(tableName);
+                    legacyCodeHandler.GenerateColumnDataForSingleColumn(dt, param.ColumnName,param.RdDataColumnId);
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("FillRdField：" + ex.ToString());
+                result = false;
             }
             return result;
         }
