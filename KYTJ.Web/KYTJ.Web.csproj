@@ -21,4 +21,8 @@
     <ProjectReference Include="..\SSO.Client\SSO.Client.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\Output\" />
+  </ItemGroup>
+
 </Project>

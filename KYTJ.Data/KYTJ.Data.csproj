@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\KYTJ.Infrastructure\KYTJ.Infrastructure.csproj" />
     <ProjectReference Include="..\KYTJ.Model\KYTJ.Model.csproj" />
+    <ProjectReference Include="..\SSO.Client\SSO.Client.csproj" />
   </ItemGroup>
 
 </Project>

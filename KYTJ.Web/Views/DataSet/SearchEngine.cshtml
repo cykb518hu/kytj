@@ -68,9 +68,9 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
+                <br />
                 <el-form-item>
                     <el-button type="primary" v-on:click="extractData('ruleForm')">提交</el-button>
-                    <el-button v-on:click="extractDataDlg=false">取消</el-button>
                 </el-form-item>
             </el-form>
         </div>
@@ -138,7 +138,6 @@
             extractData: function (formName) {
                 var param = this.ruleForm;
                 param.exportDataId = this.exportDataId;
-                this.fullscreenLoading = true;
                 var that = this;
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
@@ -162,7 +161,6 @@
                                     });
                                     console.log(data.msg);
                                 }
-                                that.fullscreenLoading = false;
                             }
                         });
 

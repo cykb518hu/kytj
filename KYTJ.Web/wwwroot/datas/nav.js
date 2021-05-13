@@ -29,7 +29,8 @@ var navs = [{
         {
             "title": "操作日志",
             "icon": "fa-envelope-open-o",
-            "href": postPath + "http://localhost:8080",
+            //"href": postPath + "http://localhost:8080",
+            "href": postPath + "Log/index",
         }
     ]
 }

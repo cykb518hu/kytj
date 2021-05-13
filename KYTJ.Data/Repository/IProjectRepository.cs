@@ -20,6 +20,7 @@ namespace KYTJ.Data.Repository
         ProjectModel GetProjectById(int id);
 
         List<ProjectModel> GetAllProjects();
+        List<ProjectModel> GetAllProjectsByUser(string userName);
     }
     public class ProjectRepository: KytjDbContext,IProjectRepository
     {
@@ -141,6 +142,20 @@ namespace KYTJ.Data.Repository
             {
                 var query = _dbKyStatic.Queryable<ProjectModel>();
                 resultsTask = query.Where(x => x.IsDeleted == 0).OrderBy("CreateTime desc").ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("查询项目失败GetAllProjects：" + ex.ToString());
+            }
+            return resultsTask;
+        }
+        public List<ProjectModel> GetAllProjectsByUser(string userName)
+        {
+            var resultsTask = new List<ProjectModel>();
+            try
+            {
+                var query = _dbKyStatic.Queryable<ProjectModel>();
+                resultsTask = query.Where(x => x.IsDeleted == 0 && x.UserName == userName).ToList();
             }
             catch (Exception ex)
             {

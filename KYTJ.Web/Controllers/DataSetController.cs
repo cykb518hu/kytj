@@ -62,7 +62,7 @@ namespace KYTJ.Web.Controllers
         {
             try
             {
-                _logRepository.Add("抽取数据", "", "", "", $"抽取数据源ID:{exportDataId},项目id:{projectId}");
+                _logRepository.Add("抽取数据", $"抽取数据源ID:{exportDataId},项目id:{projectId}");
                 Task t = Task.Run(() =>
                 {
                     var userName = _ssoUser.GetUserIdentity();
@@ -99,11 +99,11 @@ namespace KYTJ.Web.Controllers
             }
         }
 
-        public ActionResult DeleteDataSet(int dataSetId )
+        public ActionResult DeleteDataSet(int dataSetId)
         {
             try
             {
-                _logRepository.Add("删除数据集", "", "", "", $"数据集DataSetId:{dataSetId}");
+                _logRepository.Add("删除数据集", $"数据集DataSetId:{dataSetId}");
                 var data = _dataSetRepository.DeleteDataSet(dataSetId);
                 var msg = "删除成功";
                 if (!data)
@@ -122,7 +122,7 @@ namespace KYTJ.Web.Controllers
         {
             try
             {
-                _logRepository.Add("修改数据集", "", "", "", $"数据集DataSetId:{data.DataSetId}");
+                _logRepository.Add("修改数据集", $"数据集DataSetId:{data.DataSetId}");
                 var result = false;
                 var userName = _ssoUser.GetUserIdentity();
 

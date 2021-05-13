@@ -15,7 +15,6 @@ namespace KYTJ.Model
         [SugarColumn(ColumnName = "sLevel")]
         public string Level { get; set; }
 
-        [JsonIgnore]
         [SugarColumn(ColumnName = "sMessage")]
         public string Message { get; set; }
         public string SourceName { get; set; }

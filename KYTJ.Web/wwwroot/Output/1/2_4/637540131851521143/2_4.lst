@@ -1,7 +1,0 @@
-
-	classical Levene's test based on the absolute deviations from the mean
-	( zero.removal not applied because the location is not set to median )
-
-data:  x
-Test Statistic = NaN, p-value = NA
-

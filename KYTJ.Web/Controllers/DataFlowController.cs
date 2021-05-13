@@ -14,19 +14,21 @@ namespace KYTJ.Web.Controllers
 {
     public class DataFlowController : Controller
     {
-
+        private readonly ILogRepository _logRepository;
         private readonly IDataFlowRepository _dataFlowRepository;
         private readonly IDataManageRepository _dataManageRepository;
-        public DataFlowController(IDataFlowRepository dataFlowRepository, IDataManageRepository dataManageRepository)
+        public DataFlowController(IDataFlowRepository dataFlowRepository, IDataManageRepository dataManageRepository, ILogRepository logRepository)
         {
             _dataFlowRepository = dataFlowRepository;
             _dataManageRepository = dataManageRepository;
+            _logRepository = logRepository;
         }
 
         public JsonResult SetDataFlowCache(int resultDataId, string node)
         {
             try
             {
+                _logRepository.Add("画布-设置数据源", $"rdResultId:{resultDataId}");
                 var msg = "设置成功";
                 _dataFlowRepository.SetDataFlowCache(resultDataId, node);
                 return Json(new { success = true, msg });
@@ -84,10 +86,11 @@ namespace KYTJ.Web.Controllers
             }
         }
 
-        public JsonResult GetDataFilterColumns(string node, string filterType, int filterPercent)
+        public JsonResult DataFilterGetColumns(string node, string filterType, int filterPercent)
         {
             try
             {
+                
                 var data = new List<DFDataColumn>();
                 var result = false;
                 var msg = "";
@@ -102,7 +105,7 @@ namespace KYTJ.Web.Controllers
                 }
                 else
                 {
-                    data = _dataFlowRepository.GetDataFilterColumns(node, filterType, filterPercent);
+                    data = _dataFlowRepository.DataFilterGetColumns(node, filterType, filterPercent);
                     if (data.Any())
                     {
                         result = true;
@@ -120,12 +123,13 @@ namespace KYTJ.Web.Controllers
             }
         }
 
-        public JsonResult DeleteDataFilterColumns(string node, List<int> ids)
+        public JsonResult DataFilterDeleteColumns(string node, List<int> ids)
         {
             try
             {
+                _logRepository.Add("画布-过滤");
                 var result = false;
-                result = _dataFlowRepository.DeleteDataFilterColumns(node, ids);
+                result = _dataFlowRepository.DataFilterDeleteColumns(node, ids);
                 var msg = "";
                 if (result)
                 {
@@ -144,7 +148,7 @@ namespace KYTJ.Web.Controllers
             }
         }
 
-        public JsonResult GetStatisticsMethod()
+        public JsonResult DataCalculateGetMethod()
         {
             try
             {
@@ -162,11 +166,12 @@ namespace KYTJ.Web.Controllers
             }
         }
 
-        public JsonResult Calculate(StatisticsMethodVM parameters)
+        public JsonResult DataCalculateDo(StatisticsMethodVM parameters)
         {
             try
             {
-                var data = _dataFlowRepository.Calculate(parameters);
+                _logRepository.Add("画布-统计分析");
+                var data = _dataFlowRepository.DataCalculateDo(parameters);
                 if(data!=null&& !string.IsNullOrEmpty(data.OutputHTML))
                 {
                     return Json(new { success = true, data });
@@ -200,6 +205,7 @@ namespace KYTJ.Web.Controllers
         {
             try
             {
+                _logRepository.Add("画布-行处理");
                 var result = 0;
                 result = _dataFlowRepository.DataRowFilterByColumns(node, filterColumns);
                 return Json(new { success = true, data = result });
@@ -214,6 +220,7 @@ namespace KYTJ.Web.Controllers
         {
             try
             {
+                _logRepository.Add("画布-样本管理-简单抽样");
                 var result = true;
                 var msg = "提取成功";
                 result = _dataFlowRepository.DataSampleExtractSimple(node, simObj);
@@ -229,7 +236,7 @@ namespace KYTJ.Web.Controllers
             }
         }
 
-        public JsonResult GetDataCombineSource(List<string> prevNodeIds)
+        public JsonResult DataCombineGetSource(List<string> prevNodeIds)
         {
             try
             {
@@ -288,6 +295,7 @@ namespace KYTJ.Web.Controllers
         {
             try
             {
+                _logRepository.Add("画布-数据整合-合并");
                 var result = true;
                 var msg = "合并成功";
                 result = _dataFlowRepository.DataCombineAppend(node, prevNodeIds, fieldSource);
@@ -308,6 +316,7 @@ namespace KYTJ.Web.Controllers
         {
             try
             {
+                _logRepository.Add("画布-裂处理-填充");
                 var result = true;
                 var msg = "填充成功";
                 result = _dataFlowRepository.DataColumnFillField(node, fieldName, condition, filedValue);

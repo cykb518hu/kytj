@@ -70,21 +70,23 @@ namespace KYTJ.Web.Controllers
             {
                 var result = false;
                 var userName = _ssoUser.GetUserIdentity();
+                var msg = "操作成功";
                 if (id > 0)
                 {
-                    _logRepository.Add($"修改项目", "", "", "", $"项目ID:{id}");
+                    _logRepository.Add($"修改项目", projectName, "", $"项目id:{id},项目:{projectName},项目描述:{projectDesc}");
                     result = _projectRepository.UpdateProject(id, projectName, projectDesc);
                 }
                 else
                 {
-                    _logRepository.Add($"新增项目",projectName);
+                    _logRepository.Add($"新增项目", projectName, "", $"项目:{projectName},项目描述:{projectDesc}");
                     result = _projectRepository.AddProject(projectName, projectDesc, userName);
                 }
-                var msg = "操作成功";
                 if (!result)
                 {
                     msg = "操作失败";
                 }
+
+
                 return Json(new { success = result, msg });
             }
             catch (Exception ex)

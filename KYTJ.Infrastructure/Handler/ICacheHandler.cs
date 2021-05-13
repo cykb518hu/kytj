@@ -32,7 +32,7 @@ namespace KYTJ.Infrastructure.Handler
             var data = _cache.Get(key);
             if (data == null)
             {
-                _logger.LogWarning($"缓存{key}已经失效");
+                _logger.LogWarning($"缓存{key}已经失效,或不存在");
             }
             else
             {

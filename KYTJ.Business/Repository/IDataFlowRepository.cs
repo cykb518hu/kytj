@@ -21,10 +21,10 @@ namespace KYTJ.Business.Repository
         void SetDataFlowCache(int resultDataId, string node);
         DataFlowCacheModel GetDataFlowCache(string node, string prevNode = "");
 
-        List<DFDataColumn> GetDataFilterColumns(string node, string filterType, int filterPercent);
+        List<DFDataColumn> DataFilterGetColumns(string node, string filterType, int filterPercent);
 
-        bool DeleteDataFilterColumns(string node, List<int> ids);
-        StatisticsMethodResult Calculate(StatisticsMethodVM parameters);
+        bool DataFilterDeleteColumns(string node, List<int> ids);
+        StatisticsMethodResult DataCalculateDo(StatisticsMethodVM parameters);
         int DataRowFilterByColumns(string node, List<DataRowFilter> filterColumns);
         bool DataSampleExtractSimple(string node, DataSampleModel simObj);
         bool DataCombineAppend(string node, List<string> prevNodeIds, string fieldSource);
@@ -156,7 +156,7 @@ namespace KYTJ.Business.Repository
             return data;
         }
 
-        public List<DFDataColumn> GetDataFilterColumns(string node,string filterType,int filterPercent)
+        public List<DFDataColumn> DataFilterGetColumns(string node,string filterType,int filterPercent)
         {
             var cols = new List<DFDataColumn>();
             try
@@ -208,7 +208,7 @@ namespace KYTJ.Business.Repository
             return cols;
         }
 
-        public bool DeleteDataFilterColumns(string node, List<int> ids)
+        public bool DataFilterDeleteColumns(string node, List<int> ids)
         {
             var result = true;
             try
@@ -235,7 +235,7 @@ namespace KYTJ.Business.Repository
             return result;
         }
 
-        public StatisticsMethodResult Calculate(StatisticsMethodVM  parameters)
+        public StatisticsMethodResult DataCalculateDo(StatisticsMethodVM  parameters)
         {
             var res = new StatisticsMethodResult();
             try
@@ -408,15 +408,12 @@ namespace KYTJ.Business.Repository
                 DataTable dtRel = new DataTable();
                 var dt = cacheData.DataTable;
                 int dataCount = dt.Rows.Count;
+                var rowList = new List<DataRow>();
                 switch (simObj.Method)
                 {
                     case "extract":
-
-                        for (int i = 1; i <= dt.Rows.Count; i++)
-                        {
-                            if (i % simObj.SimVal == 1)
-                                dtRel.ImportRow(dt.Rows[i]);
-                        }
+                        var count = Convert.ToInt32(dataCount / simObj.SimVal);
+                        dtRel = dt.AsEnumerable().Take(count).CopyToDataTable();
                         break;
                     case "pecent":
                         bool valBoo = System.Text.RegularExpressions.Regex.IsMatch(simObj.SimVal.ToString(), @"^[1-9]\d*$");
