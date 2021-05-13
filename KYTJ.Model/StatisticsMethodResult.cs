@@ -15,6 +15,8 @@ namespace KYTJ.Model
         }
         public string OutputHTML { get; set; }
         public List<string> Pictures { get; set; }
+
+        public string DownLoadZip { get; set; }
     }
 
 }

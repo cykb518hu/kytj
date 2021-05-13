@@ -45,7 +45,7 @@
                                         <time class="date">更新时间: {{ project.createTime }}</time>
                                     </div>
                                     <div class="bottom clearfix">
-                                        <i class="el-icon-menu edit" v-on:click="maintainProject()"
+                                        <i class="el-icon-menu edit" v-on:click="maintainProject(project.id)"
                                            style="padding-right:6px; padding-top:6px;font-size:20px"></i>
                                         <i class="el-icon-edit edit" v-on:click="onEditProject(project)"
                                            style="padding-top:6px;font-size:20px"></i>
@@ -225,12 +225,12 @@
                 });
             },
 
-            maintainProject: function () {
+            maintainProject(projectId) {
                 this.huabuindex++;
                 top.tab.tabAdd({
-                    href: "/dist/index.html",
+                    href: "/dist/index.html?projectId=" + projectId,
                     icon: 'fa-cubes',
-                    title: '画布演示' + this.huabuindex++
+                    title: '画布演示' + this.huabuindex
                 });
             }
         },

@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 
@@ -242,7 +243,7 @@ namespace KYTJ.Business.Repository
             {
                 _logger.LogInformation($"开始计算");
                 var userId = GlobalSetting.RScriptAcount;
-                var outputPath =$@"\wwwroot\Output\{userId}\{parameters.MethodCode}\{DateTime.Now.Ticks.ToString()}";
+                var outputPath =$@"\wwwroot\Output\{userId}\{parameters.MethodCode}\{DateTime.Now.ToString("yyyyMMddHHmmss")}";
                 //@"\wwwroot\Output\1\1_1\637539039214698493";// 
                 _logger.LogInformation($"计算目录");
                 var target = _env.ContentRootPath + outputPath;
@@ -252,6 +253,7 @@ namespace KYTJ.Business.Repository
                 var srcFiles = new DirectoryInfo(source).GetFiles();
                 foreach (FileInfo item in srcFiles)
                 {
+                    
                     item.CopyTo(Path.Combine(target, item.Name), true);
                 }
                 var cache = GetDataFlowCache(parameters.Node);
@@ -285,6 +287,8 @@ namespace KYTJ.Business.Repository
                             res.OutputHTML = CalculateResult(target);
                             if (!string.IsNullOrEmpty(res.OutputHTML))
                             {
+                                var downLoadFolder = target + "\\download";
+                                Directory.CreateDirectory(downLoadFolder);
                                 var fileList = System.IO.Directory.EnumerateFiles(target).OrderBy(f => Path.GetExtension(f));
                                 if (fileList != null)
                                 {
@@ -295,17 +299,23 @@ namespace KYTJ.Business.Repository
                                         if (ext.ToLower() == ".png")
                                         {
                                             res.Pictures.Add(fileName);
+                                            File.Copy($@"{target}\{fileName}", $@"{downLoadFolder}\{fileName}");
+                                        }
+                                        if (ext.ToLower() == ".htm")
+                                        {
+                                            File.Copy($@"{target}\{fileName}", $@"{downLoadFolder}\{fileName}");
                                         }
                                     }
-                                    done = true;
                                 }
+                                ZipFile.CreateFromDirectory(downLoadFolder, target + "\\DownLoadZip.zip");
+                                res.DownLoadZip= Path.Combine(outputPath.Replace("~", "").Replace(@"\wwwroot\", ""), "DownLoadZip.zip");
+                                done = true;
                             }
                         }
                         else
                         {
                             System.Threading.Thread.Sleep(100);
                         }
-                        done = true;
                     } while (!done);
 
                     if (res != null && !string.IsNullOrEmpty(res.OutputHTML))
@@ -318,6 +328,7 @@ namespace KYTJ.Business.Repository
                                 res.Pictures[i] = Path.Combine(outputPath.Replace("~", "").Replace(@"\wwwroot\", ""), res.Pictures[i]);
                             }
                         }
+
                     }  
                 }
                
@@ -351,6 +362,7 @@ namespace KYTJ.Business.Repository
                     }
                 }
             }
+
             return string.Empty;
         }
 
