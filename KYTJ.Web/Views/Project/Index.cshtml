@@ -45,7 +45,7 @@
                                         <time class="date">更新时间: {{ project.createTime }}</time>
                                     </div>
                                     <div class="bottom clearfix">
-                                        <i class="el-icon-menu edit" v-on:click="maintainProject(project.id)"
+                                        <i class="el-icon-menu edit" v-on:click="dataFlowProject(project)"
                                            style="padding-right:6px; padding-top:6px;font-size:20px"></i>
                                         <i class="el-icon-edit edit" v-on:click="onEditProject(project)"
                                            style="padding-top:6px;font-size:20px"></i>
@@ -175,14 +175,16 @@
                         if (data && data.success) {
                             that.$message({
                                 type: "success",
-                                message: data.msg
+                                message: data.msg,
+                                duration: 1000
                             });
                             that.onSearch();
                         }
                         else {
                             that.$message({
                                 type: "error",
-                                message: data.msg
+                                message: data.msg,
+                                duration: 2000
                             });
                             console.log(data.msg);
                         }
@@ -205,14 +207,16 @@
                                 if (data && data.success) {
                                     that.$message({
                                         type: "success",
-                                        message: data.msg
+                                        message: data.msg,
+                                        duration: 1000
                                     });
                                     that.onSearch();
                                 }
                                 else {
                                     that.$message({
                                         type: "error",
-                                        message: data.msg
+                                        message: data.msg,
+                                        duration: 2000
                                     });
                                     console.log(data.msg);
                                 }
@@ -225,12 +229,15 @@
                 });
             },
 
-            maintainProject(projectId) {
+            dataFlowProject(project) {
+                let projectId = project.id;
+                let projectName = project.projectName;
                 this.huabuindex++;
                 top.tab.tabAdd({
-                    href: "/dist/index.html?projectId=" + projectId,
+                    href: "/dist/index.html?projectId=" + projectId + "&projectName=" + projectName,
                     icon: 'fa-cubes',
                     title: '画布演示' + this.huabuindex
+                   // title: projectName
                 });
             }
         },

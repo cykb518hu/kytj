@@ -25,7 +25,7 @@ namespace KYTJ.Business.Repository
         List<DFDataColumn> DataFilterGetColumns(string node, string filterType, int filterPercent);
 
         bool DataFilterDeleteColumns(string node, List<int> ids);
-        StatisticsMethodResult DataCalculateDo(StatisticsMethodVM parameters);
+        StatisticsMethodResult DataCalculate(StatisticsMethodVM parameters);
         int DataRowFilterByColumns(string node, List<DataRowFilter> filterColumns);
         bool DataSampleExtractSimple(string node, DataSampleModel simObj);
         bool DataCombineAppend(string node, List<string> prevNodeIds, string fieldSource);
@@ -227,6 +227,7 @@ namespace KYTJ.Business.Repository
                     }
                     cacheData.DataCount--;
                 }
+                SetDataFlowCache(cacheData, node);
             }
             catch (Exception ex)
             {
@@ -236,7 +237,7 @@ namespace KYTJ.Business.Repository
             return result;
         }
 
-        public StatisticsMethodResult DataCalculateDo(StatisticsMethodVM  parameters)
+        public StatisticsMethodResult DataCalculate(StatisticsMethodVM  parameters)
         {
             var res = new StatisticsMethodResult();
             try
@@ -244,8 +245,7 @@ namespace KYTJ.Business.Repository
                 _logger.LogInformation($"开始计算");
                 var userId = GlobalSetting.RScriptAcount;
                 var outputPath =$@"\wwwroot\Output\{userId}\{parameters.MethodCode}\{DateTime.Now.ToString("yyyyMMddHHmmss")}";
-                //@"\wwwroot\Output\1\1_1\637539039214698493";// 
-                _logger.LogInformation($"计算目录");
+                _logger.LogInformation($"计算目录:{outputPath}");
                 var target = _env.ContentRootPath + outputPath;
                 //R 语言脚本文件夹
                 var source = _env.ContentRootPath + Path.GetDirectoryName(parameters.MethodPath);
@@ -253,7 +253,6 @@ namespace KYTJ.Business.Repository
                 var srcFiles = new DirectoryInfo(source).GetFiles();
                 foreach (FileInfo item in srcFiles)
                 {
-                    
                     item.CopyTo(Path.Combine(target, item.Name), true);
                 }
                 var cache = GetDataFlowCache(parameters.Node);
@@ -331,7 +330,8 @@ namespace KYTJ.Business.Repository
 
                     }  
                 }
-               
+                _logger.LogInformation($"计算结束");
+
             }
             catch(Exception ex)
             {
@@ -400,7 +400,7 @@ namespace KYTJ.Business.Repository
                     cacheData.DataCount = filterRows.Length;
                     var handler = new LegacyCodeHandler(_extractEngineDataHandlerlogger);
                     cacheData.DataColumns = handler.GenerateColumnDataForCache(cacheData.DataTable,cacheData.DataColumns);
-
+                    SetDataFlowCache(cacheData, node);
                 }
             }
             catch (Exception ex)
@@ -460,6 +460,7 @@ namespace KYTJ.Business.Repository
                 cacheData.DataCount = dtRel.Rows.Count;
                 var handler = new LegacyCodeHandler(_extractEngineDataHandlerlogger);
                 cacheData.DataColumns = handler.GenerateColumnDataForCache(cacheData.DataTable, cacheData.DataColumns);
+                SetDataFlowCache(cacheData, node);
             }
             catch (Exception ex)
             {
@@ -594,6 +595,7 @@ namespace KYTJ.Business.Repository
                     }
                     var handler = new LegacyCodeHandler(_extractEngineDataHandlerlogger);
                     cacheData.DataColumns = handler.GenerateColumnDataForCache(cacheData.DataTable, cacheData.DataColumns);
+                    SetDataFlowCache(cacheData, node);
                 }
             }
             catch (Exception ex)

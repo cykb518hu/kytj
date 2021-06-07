@@ -78,6 +78,7 @@ namespace KYTJ.Model
         public int ResultDataId { get; set; }
         public bool IsGrouping { get; set; }
 
+        [SugarColumn(IsIgnore = true)]
         public string NullPercent { get; set; }
 
         [SugarColumn(IsIgnore = true)]

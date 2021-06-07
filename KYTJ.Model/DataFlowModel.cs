@@ -37,7 +37,6 @@ namespace KYTJ.Model
 
         public List<DFDataColumn> DataColumns { get; set; }
 
-        [JsonIgnore]
         public DataTable DataTable { get; set; }
     }
 

@@ -5,17 +5,19 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Threading.Tasks;
+using SqlSugar;
 
 namespace KYTJ.Data.Repository
 {
     public interface IProjectRepository
     {
-        List<ProjectModel> GetProjectAndSub(string userName);
+        Task<List<ProjectModel>> GetProjectAndSubAsync(string userName);
         List<ProjectModel> Search(string userName, int pageIndex, int pageSize, ref int totalCount);
         bool DeleteProject(int id);
 
         bool AddProject(string projectName, string projectDesc, string userName);
-        bool UpdateProject(int id, string projectName, string projectDesc);
+        Task<bool> UpdateProjectAsync(int id, string projectName, string projectDesc);
 
         ProjectModel GetProjectById(int id);
 
@@ -31,6 +33,7 @@ namespace KYTJ.Data.Repository
         }
         public List<ProjectModel> Search(string userName, int pageIndex, int pageSize, ref int totalCount)
         {
+            //RefAsync<int> totalCount = 0;
             var resultsTask = new List<ProjectModel>();
             try
             {
@@ -51,20 +54,20 @@ namespace KYTJ.Data.Repository
             {
                 result = _dbKyStatic.Updateable<ProjectModel>(x => x.IsDeleted == 1).Where(x => x.Id == id).ExecuteCommandHasChange();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("删除项目失败：" + ex.ToString());
             }
             return result;
         }
-        public bool UpdateProject(int id, string projectName, string projectDesc)
+        public async Task<bool> UpdateProjectAsync(int id, string projectName, string projectDesc)
         {
             var result = false;
             try
             {
-                result = _dbKyStatic.Updateable<ProjectModel>()
+                result = await _dbKyStatic.Updateable<ProjectModel>()
                     .SetColumns(x=>new ProjectModel() { ProjectName=projectName,ProjectDesc=projectDesc,UpdateTime=DateTime.Now })
-                    .Where(x => x.Id == id).ExecuteCommandHasChange();
+                    .Where(x => x.Id == id).ExecuteCommandHasChangeAsync();
             }
             catch (Exception ex)
             {
@@ -85,7 +88,7 @@ namespace KYTJ.Data.Repository
                 project.UpdateTime = DateTime.Now;
                 project.DiseaseType = 1;
                 project.DeptID = 1;
-                int count = _dbKyStatic.Insertable(project).ExecuteCommand();
+                int count =  _dbKyStatic.Insertable(project).ExecuteCommand();
                 result = count > 0 ? true : false;
             }
             catch (Exception ex)
@@ -95,13 +98,13 @@ namespace KYTJ.Data.Repository
             return result;
         }
 
-        public List<ProjectModel> GetProjectAndSub(string userName)
+        public async Task<List<ProjectModel>> GetProjectAndSubAsync(string userName)
         {
             var resultsTask = new List<ProjectModel>();
             try
             {
-                var query = _dbKyStatic.Queryable<ProjectModel>();
-                resultsTask = query.Where(x => x.UserName == userName && x.IsDeleted == 0)
+                var query =  _dbKyStatic.Queryable<ProjectModel>();
+                resultsTask =  await query.Where(x => x.UserName == userName && x.IsDeleted == 0)
                     .Mapper(it => it.DataSetList, it => it.DataSetList.First().ProjectId)
                 .Mapper((s, cache) =>
                 {
@@ -110,7 +113,7 @@ namespace KYTJ.Data.Repository
                         t.ResultDataList = _dbKyStatic.Queryable<ResultData>().Where(o => o.DataSetId == t.DataSetId).ToList();
                     }
                 }
-                ).ToList();
+                ).ToListAsync();
             }
             catch (Exception ex)
             {
@@ -125,8 +128,8 @@ namespace KYTJ.Data.Repository
             try
             {
                 var query = _dbKyStatic.Queryable<ProjectModel>();
-                resultsTask = query.Where(x => x.Id == id)
-                .ToList().FirstOrDefault();
+                resultsTask =  query.Where(x => x.Id == id)
+                .First();
             }
             catch (Exception ex)
             {
@@ -141,7 +144,7 @@ namespace KYTJ.Data.Repository
             try
             {
                 var query = _dbKyStatic.Queryable<ProjectModel>();
-                resultsTask = query.Where(x => x.IsDeleted == 0).OrderBy("CreateTime desc").ToList();
+                resultsTask =  query.Where(x => x.IsDeleted == 0).OrderBy("CreateTime desc").ToList();
             }
             catch (Exception ex)
             {
@@ -155,7 +158,7 @@ namespace KYTJ.Data.Repository
             try
             {
                 var query = _dbKyStatic.Queryable<ProjectModel>();
-                resultsTask = query.Where(x => x.IsDeleted == 0 && x.UserName == userName).ToList();
+                resultsTask =  query.Where(x => x.IsDeleted == 0 && x.UserName == userName).ToList();
             }
             catch (Exception ex)
             {

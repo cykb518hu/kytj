@@ -225,13 +225,15 @@
                                 if (data && data.success) {
                                     that.$message({
                                         type: "success",
-                                        message: data.msg
+                                        message: data.msg,
+                                        duration:1000
                                     });
                                 }
                                 else {
                                     that.$message({
                                         type: "error",
-                                        message: data.msg
+                                        message: data.msg,
+                                        duration: 2000
                                     });
                                     console.log(data.msg);
                                 }
@@ -260,13 +262,15 @@
                                 if (data && data.success) {
                                     that.$message({
                                         type: "success",
-                                        message: data.msg
+                                        message: data.msg,
+                                        duration: 1000
                                     });
                                 }
                                 else {
                                     that.$message({
                                         type: "error",
-                                        message: data.msg
+                                        message: data.msg,
+                                        duration: 2000
                                     });
                                     console.log(data.msg);
                                 }

@@ -44,7 +44,16 @@ namespace KYTJ.Web
             services.AddTransient<IDataSetRepository, DataSetRepository>();
             services.AddTransient<IDataManageRepository, DataManageRepository>();
             services.AddTransient<IDataFlowRepository, DataFlowRepository>();
-            services.AddTransient<ICacheHandler, LocalMemoryCache>();
+
+            if(Configuration.GetValue<bool>("GlobalSetting:EnableRedis"))
+            {
+                services.AddTransient<ICacheHandler, RedisCahce>();
+            }
+            else
+            {
+                services.AddTransient<ICacheHandler, LocalMemoryCache>();
+            }
+            
             services.AddTransient<IDataService, DataService>();
             services.AddTransient<ISSOUser, SSOUserRepository>();
             KytjDbContext.KyStaticManagement = Configuration.GetConnectionString("KyStaticManagement");
@@ -57,18 +66,18 @@ namespace KYTJ.Web
                 options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
             });
             GlobalSetting.Logo = Configuration.GetValue<string>("GlobalSetting:Logo");
-            GlobalSetting.SqlFilePath = Configuration.GetValue<string>("GlobalSetting:SqlFilePath");
             GlobalSetting.RScriptRunnerPath = Configuration.GetValue<string>("GlobalSetting:RScriptRunnerPath");
             GlobalSetting.RScriptAcount = Configuration.GetValue<string>("GlobalSetting:RScriptAcount");
             GlobalSetting.Title = Configuration.GetValue<string>("GlobalSetting:Title");
             GlobalSetting.CacheExpire = Configuration.GetValue<int>("GlobalSetting:CacheExpire");
             GlobalSetting.SiteUrl = Configuration.GetValue<string>("GlobalSetting:SiteUrl");
+            GlobalSetting.RedisConnection = Configuration.GetConnectionString("RedisConnection");
 
             SSOClient.AppName = Configuration.GetValue<string>("SSOClient:AppName");
             SSOClient.VerifyUrl = Configuration.GetValue<string>("SSOClient:VerifyUrl");
             SSOClient.LogoutUrl = Configuration.GetValue<string>("SSOClient:LogoutUrl");
             SSOClient.GetUserUrl = Configuration.GetValue<string>("SSOClient:GetUserUrl");
-            SSOClient.ClientUrl = Configuration.GetValue<string>("SSOClient:ClientUrl");
+            SSOClient.ClientUrl = Configuration.GetValue<string>("GlobalSetting:SiteUrl");
             SSOClient.Enable = Configuration.GetValue<bool>("SSOClient:Enable");
             services.AddMvc(options => {
                 options.Filters.Add(new SSOActionFIlter());
@@ -94,7 +103,6 @@ namespace KYTJ.Web
                 app.UseExceptionHandler("/Home/Error");
             }
             app.UseStaticFiles();
-
             app.UseRouting();
 
             //ideally we should set this as httponly, since layout.cshtml need to read cookie via jquery 

@@ -64,7 +64,7 @@ namespace KYTJ.Web.Controllers
             }
         }
 
-        public JsonResult MaintainProject(int id, string projectName, string projectDesc)
+        public async Task<JsonResult> MaintainProject(int id, string projectName, string projectDesc)
         {
             try
             {
@@ -74,7 +74,7 @@ namespace KYTJ.Web.Controllers
                 if (id > 0)
                 {
                     _logRepository.Add($"修改项目", projectName, "", $"项目id:{id},项目:{projectName},项目描述:{projectDesc}");
-                    result = _projectRepository.UpdateProject(id, projectName, projectDesc);
+                    result = await _projectRepository.UpdateProjectAsync(id, projectName, projectDesc);
                 }
                 else
                 {
@@ -95,14 +95,14 @@ namespace KYTJ.Web.Controllers
             }
         }
 
-        public JsonResult GetProjectAndSub()
+        public async Task<JsonResult> GetProjectAndSub()
         {
             try
             {
                 var total = 0;
 
                 var userName = _ssoUser.GetUserIdentity();// HttpContext.User.Identity.Name;
-                var data = _projectRepository.GetProjectAndSub(userName);
+                var data = await _projectRepository.GetProjectAndSubAsync(userName);
                 return Json(new { success = true, data, total });
             }
             catch (Exception ex)

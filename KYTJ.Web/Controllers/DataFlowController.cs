@@ -1,6 +1,7 @@
 ﻿
 using KYTJ.Business.Repository;
 using KYTJ.Data.Repository;
+using KYTJ.Infrastructure.Handler;
 using KYTJ.Model;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -78,7 +79,9 @@ namespace KYTJ.Web.Controllers
 
                     }
                 }
-                return Json(new { success = result, data = data, msg });
+                var cloneData = data.Clone();
+                cloneData.DataTable = null;
+                return Json(new { success = result, data = cloneData, msg });
             }
             catch (Exception ex)
             {
@@ -171,7 +174,7 @@ namespace KYTJ.Web.Controllers
             try
             {
                 _logRepository.Add("画布-统计分析");
-                var data = _dataFlowRepository.DataCalculateDo(parameters);
+                var data = _dataFlowRepository.DataCalculate(parameters);
                 if(data!=null&& !string.IsNullOrEmpty(data.OutputHTML))
                 {
                     return Json(new { success = true, data });

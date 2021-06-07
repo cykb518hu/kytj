@@ -56,7 +56,8 @@ namespace KYTJ.Data.Context
         }
         public string GetSqlText(string fileName)
         {
-            var path = GlobalSetting.SqlFilePath + fileName;
+            var path = AppContext.BaseDirectory + "//App_Data//sql//" + fileName;
+
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);//注册简体中文的支持
             var str = File.ReadAllText(path, Encoding.GetEncoding("gb2312"));
             return str;

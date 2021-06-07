@@ -9,7 +9,6 @@ namespace KYTJ.Infrastructure.Model
         public static string Logo { get; set; }
 
         public static string Title { get; set; }
-        public static string SqlFilePath { get; set; }
 
         public static string RScriptRunnerPath { get; set; }
 
@@ -17,5 +16,6 @@ namespace KYTJ.Infrastructure.Model
 
         public static int CacheExpire { get; set; }
         public static string SiteUrl { get; set; }
+        public static string RedisConnection { get; set; }
     }
 }
