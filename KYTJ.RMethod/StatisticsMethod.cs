@@ -70,7 +70,7 @@ namespace KYTJ.RMethod
             using (System.IO.StreamWriter sw = new System.IO.StreamWriter(fullPath, false, Encoding.GetEncoding("gb2312")))
             {
                 StringBuilder sb = new StringBuilder();
-                string[] sdfr = Array.ConvertAll(methodData.dt.Columns.Cast<DataColumn>().ToArray(), r => r.ColumnName.ToUpper());
+                string[] sdfr = Array.ConvertAll(methodData.dt.Columns.Cast<DataColumn>().ToArray(), r => RemoveSpecicalChar(r.ColumnName.ToUpper()));
                 sb.AppendLine(string.Join(",", sdfr));
                 DataRow[] drs = methodData.dt.Select("true");
                 foreach (DataRow item in drs)
@@ -95,7 +95,7 @@ namespace KYTJ.RMethod
                 sw.WriteLine("p00");
                 foreach (var item in param)
                 {
-                    sw.WriteLine($"\"{item}\"");
+                    sw.WriteLine($"\"{RemoveSpecicalChar(item)}\"");
                 }
                 sw.WriteLine();
             }
@@ -119,7 +119,7 @@ namespace KYTJ.RMethod
                 sw.WriteLine(str.Substring(0, maxCount * 4 - 1));
                 foreach (var item in lines)
                 {
-                    sw.WriteLine(item);
+                    sw.WriteLine(RemoveSpecicalChar(item));
                 }
                 sw.WriteLine();
             }
@@ -130,6 +130,11 @@ namespace KYTJ.RMethod
             var result =  RScriptRunner.RunFromCmd(Path.Combine(RScriptWorkingDirectory, RScriptFileName), RScriptWorkingDirectory);
             StaticLogger.LogInformation("计算完成:" + result);
             return string.IsNullOrEmpty(result);
+        }
+
+        protected string RemoveSpecicalChar(string str)
+        {
+            return str.Replace("@", "").Replace("#", "").Replace("￥", "").Replace("%", "").Replace("…", "").Replace("&", "").Replace("*", "").Replace("（", "").Replace("）", "").Replace("(", "").Replace(")", "");
         }
     }
 }
