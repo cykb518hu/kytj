@@ -404,10 +404,14 @@ namespace KYTJ.Data.Handler
                     foreach (var item in gro)
                     {
 
-                        if (item.Key == null) valCountDict.Add(nullKey, item.Count());
-                        else valCountDict.Add(item.Key.ToString(), item.Count());
-
-
+                        if (item.Key == null)
+                        {
+                            valCountDict[nullKey] = item.Count();
+                        }
+                        else
+                        {
+                            valCountDict[item.Key.ToString()] = item.Count();
+                        }
                     }
                     break;
                 case "Int16":
@@ -423,8 +427,14 @@ namespace KYTJ.Data.Handler
                     var groSmall = colSmall.GroupBy(c => c);
                     foreach (var item in groSmall)
                     {
-                        if (item.Key == null) valCountDict.Add(nullKey, item.Count());
-                        else valCountDict.Add(item.Key.ToString(), item.Count());
+                        if (item.Key == null)
+                        {
+                            valCountDict[nullKey] = item.Count();
+                        }
+                        else
+                        {
+                            valCountDict[item.Key.ToString()] = item.Count();
+                        }
                     }
 
                     break;
@@ -441,8 +451,14 @@ namespace KYTJ.Data.Handler
                     var grobig = colBig.GroupBy(c => c);
                     foreach (var item in grobig)
                     {
-                        if (item.Key == null) valCountDict.Add(nullKey, item.Count());
-                        else valCountDict.Add(item.Key.ToString(), item.Count());
+                        if (item.Key == null)
+                        {
+                            valCountDict[nullKey] = item.Count();
+                        }
+                        else
+                        {
+                            valCountDict[item.Key.ToString()] = item.Count();
+                        }
                     }
                     break;
                 case "DateTime":
@@ -451,8 +467,14 @@ namespace KYTJ.Data.Handler
                     var groDate = colDate.GroupBy(c => c);
                     foreach (var item in groDate)
                     {
-                        if (item.Key == null) valCountDict.Add(nullKey, item.Count());
-                        else valCountDict.Add(item.Key?.ToString("yyyy-MM-dd"), item.Count());
+                        if (item.Key == null)
+                        {
+                            valCountDict[nullKey] = item.Count();
+                        }
+                        else
+                        {
+                            valCountDict[item.Key?.ToString("yyyy-MM-dd")] = item.Count();
+                        }
                     }
                     isNum = false;
                     break;
@@ -469,8 +491,14 @@ namespace KYTJ.Data.Handler
                     var grodec = coldec.GroupBy(c => c);
                     foreach (var item in grodec)
                     {
-                        if (item.Key == null) valCountDict.Add(nullKey, item.Count());
-                        else valCountDict.Add(item.Key.ToString(), item.Count());
+                        if (item.Key == null)
+                        {
+                            valCountDict[nullKey] = item.Count();
+                        }
+                        else
+                        {
+                            valCountDict[item.Key.ToString()] = item.Count();
+                        }
                     }
 
                     break;
@@ -486,8 +514,14 @@ namespace KYTJ.Data.Handler
                     var grodo = coldo.GroupBy(c => c);
                     foreach (var item in grodo)
                     {
-                        if (item.Key == null) valCountDict.Add(nullKey, item.Count());
-                        else valCountDict.Add(item.Key.ToString(), item.Count());
+                        if (item.Key == null)
+                        {
+                            valCountDict[nullKey] = item.Count();
+                        }
+                        else
+                        {
+                            valCountDict[item.Key.ToString()] = item.Count();
+                        }
                     }
                     break;
                 case "Single":
@@ -502,8 +536,14 @@ namespace KYTJ.Data.Handler
                     var groflo = colflo.GroupBy(c => c);
                     foreach (var item in groflo)
                     {
-                        if (item.Key == null) valCountDict.Add(nullKey, item.Count());
-                        else valCountDict.Add(item.Key.ToString(), item.Count());
+                        if (item.Key == null)
+                        {
+                            valCountDict[nullKey] = item.Count();
+                        }
+                        else
+                        {
+                            valCountDict[item.Key.ToString()] = item.Count();
+                        }
                     }
                     break;
                 default://字符串
@@ -518,10 +558,10 @@ namespace KYTJ.Data.Handler
                                 //valCountDict.Add(nullKey, valCountDict[nullKey] + item.Count());
                                 valCountDict[nullKey] = valCountDict[nullKey] + item.Count();
                             else
-                                valCountDict.Add(nullKey, item.Count());
+                                valCountDict[nullKey] = item.Count();
                         }
                         else
-                            valCountDict.Add(item.Key, item.Count());
+                            valCountDict[item.Key] = item.Count();
 
                     }
                     isNum = false;
